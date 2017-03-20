@@ -68,10 +68,10 @@ test_suite.cpp: tachy.t.h
 test: $(TESTS)
 	./tachy_test_base && ./tachy_test_sse && ./tachy_test_sse2 && ./tachy_test_avx
 
-example: example_avx2 example_avx example_sse2 example_base 
+example: example_avx example_sse2 example_base # example_avx2
 
-example_avx2: example.cpp $(HEADERS)
-	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 $<
+#example_avx2: example.cpp $(HEADERS)
+#	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 $<
 
 example_avx: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx $<
