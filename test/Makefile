@@ -26,7 +26,7 @@ HEADERS = $(INCLUDE)/tachy_aligned_allocator.h \
 	  $(INCLUDE)/tachy_vector_engine.h \
 	  $(INCLUDE)/tachy_vector.h
 
-TESTS = $(addprefix tachy_,test_base test_sse test_sse2 test_avx)
+TESTS = $(addprefix tachy_test_,base sse sse2 avx avx2 fma fmavx2)
 
 all: $(TESTS)
 
@@ -62,16 +62,46 @@ tachy_test_avx: test_suite.cpp tachy.t.h $(HEADERS)
 tachy_test_avx.debug: test_suite.cpp tachy.t.h $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(DEBUG) -mavx $<
 
+test_avx2: tachy_test_avx2 tachy_test_avx2.debug
+
+tachy_test_avx2: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 $<
+
+tachy_test_avx2.debug: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(DEBUG) -mavx2 $<
+
+test_fma: tachy_test_fma tachy_test_fma.debug
+
+tachy_test_fma: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mfma $<
+
+tachy_test_fma.debug: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(DEBUG) -mfma $<
+
+test_fmavx2: tachy_test_fmavx2 tachy_test_fmavx2.debug
+
+tachy_test_fmavx2: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 -mfma $<
+
+tachy_test_fmavx2.debug: test_suite.cpp tachy.t.h $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(DEBUG) -mavx2 -mfma $<
+
 test_suite.cpp: tachy.t.h
 	$(CXXTESTGEN) --error-printer -o $@ $<
 
 test: $(TESTS)
-	./tachy_test_base && ./tachy_test_sse && ./tachy_test_sse2 && ./tachy_test_avx
+	./tachy_test_base && ./tachy_test_sse && ./tachy_test_sse2 && ./tachy_test_avx && ./tachy_test_avx2 && ./tachy_test_fma && ./tachy_test_fmavx2
 
-example: example_avx example_sse2 example_base # example_avx2
+example: $(addprefix example_,base sse2 avx avx2 fma fmavx2)
 
-#example_avx2: example.cpp $(HEADERS)
-#	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 $<
+example_fmavx2: example.cpp $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mfma -mavx2 $<
+
+example_fma: example.cpp $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mfma $<
+
+example_avx2: example.cpp $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx2 $<
 
 example_avx: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx $<

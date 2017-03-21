@@ -4,16 +4,28 @@
 #if defined(__MMX__)
 #include <mmintrin.h>  /* MMX  __m64 int */
 #endif
+
 #if defined(__SSE__)
 #include <xmmintrin.h> /* SSE  __m128  float */
 #endif
+
 #if defined(__SSE2__)
 #include <emmintrin.h> /* SSE2 __m128i: long long,  __m128d double  */
 #include <mmintrin.h>  /* for indices */
 #endif
+
 #if defined(__AVX__)
 #include <immintrin.h> /* AVX  __m256  float */
 #include <smmintrin.h> /* for indices */
+#endif
+
+#if defined(__AVX2__)
+#include <immintrin.h> /* AVX  __m256  float */
+#include <smmintrin.h> /* for indices */
+#endif
+
+#if defined(__FMA__)
+#include <fmaintrin.h>
 #endif
 
 #include <stdio.h>
@@ -33,13 +45,27 @@ namespace tachy
             ARCH_IA_SSE,
             ARCH_IA_SSE2,
             ARCH_IA_AVX,
-            ARCH_IA_AVX2
+            ARCH_IA_AVX2,
+            ARCH_IA_FMA,
+            ARCH_IA_FMAVX2
       };
 
       enum
       {
             ACTIVE_ARCH_TYPE
-#if defined(__AVX2__) || defined(__AVX512__)
+#if defined(__AVX2__) && defined(__FMA__)
+#define TACHY_SIMD_VERSION 7
+            = ARCH_IA_FMAVX2
+#if TACHY_CT_DEBUG
+#warning "ARCH type is FMA+AVX2"
+#endif
+#elif defined(__FMA__)
+#define TACHY_SIMD_VERSION 6
+            = ARCH_IA_FMA
+#if TACHY_CT_DEBUG
+#warning "ARCH type is FMA"
+#endif
+#elif defined(__AVX2__)
 #define TACHY_SIMD_VERSION 5
             = ARCH_IA_AVX2
 #if TACHY_CT_DEBUG
@@ -604,8 +630,25 @@ namespace tachy
 #if defined(__AVX2__)
             static inline packed_t gather(const scalar_t* s, const index_t& i)
             {
-                  return _mm256_i32gather_pd(s, i, 1);
+                  return _mm256_i32gather_pd(s, i, 8);
             }
+#endif
+      };
+
+      
+      template <> struct arch_traits<double, ARCH_IA_FMA> : public arch_traits<double, ARCH_IA_AVX>
+      {
+#if defined(__FMA__)
+            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            {
+                  return _mm256_fmadd_pd(x, y, c);
+            }
+#endif
+      };
+
+      template <> struct arch_traits<double, ARCH_IA_FMAVX2> : public arch_traits<double, ARCH_IA_AVX2>
+      {
+#if defined(__FMA__)
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
                   return _mm256_fmadd_pd(x, y, c);

@@ -179,6 +179,20 @@ public:
             for (int i = 0; i < arch_traits_t::stride; ++i)
                   TS_ASSERT_EQUALS(((real_t*)&z)[i], -x[i]);
       }
+
+      void test_gather()
+      {
+            TS_TRACE("test_gather");
+            std::vector<real_t> src(500, 0.0);
+            for (int i = 0; i < src.size(); ++i)
+                  src[i] = real_t(random())/RAND_MAX;
+            arch_traits_t::index_t idx;
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  ((int*)&idx)[i] = int((arch_traits_t::stride + 1)*double(random())/RAND_MAX)%arch_traits_t::stride;
+            arch_traits_t::packed_t z = arch_traits_t::gather(&src[0], idx);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((real_t*)&z)[i], src[((int*)(&idx))[i]]);
+      }
 };
 
 class tachy_arch_traits_test_float : public CxxTest::TestSuite
