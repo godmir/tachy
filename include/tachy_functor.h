@@ -238,7 +238,7 @@ namespace tachy
       template <typename NumType, class Arg, class Functor, unsigned int Level, class FcnCallPolicy, class FunctorObjPolicy>
       struct data_engine_traits< functor_engine_delayed_cache<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy> >
       {
-            typedef functor_engine<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy> CachedEngine_t;
+            typedef functor_engine<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy> cached_engine_t;
             typedef functor_engine_delayed_cache<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy> const& ref_type_t;
       };
 
