@@ -19,6 +19,7 @@
 #include "tachy_spline_util.h"
 #include "tachy_linear_spline_incr_slope.h"
 #include "tachy_linear_spline_uniform.h"
+#include "tachy_linear_spline_uniform_index.h"
 
 class tachy_arch_traits_test_double : public CxxTest::TestSuite
 {
@@ -1015,4 +1016,21 @@ public:
                   TSM_ASSERT_DELTA(msg.str().c_str(), y, r[i], delta);
             }
       }
+
+      void test_uniform_index_spline()
+      {
+            TS_TRACE("test_uniform_index_spline");
+
+            tachy::linear_spline_uniform_index<real_t> s("test", pts);
+            
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts.size(); ++k)
+                        y += pts[k].second*std::max<real_t>(0.0, src[i] - pts[k].first);
+                  const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(s(src[i]), y, delta);
+            }
+      }
+
 };

@@ -1,7 +1,7 @@
 CXXTESTGEN = cxxtestgen
 CXX        = g++
 INCLUDE    = ../include
-CXXFLAGS   = -I$(INCLUDE)
+CXXFLAGS   = -I$(INCLUDE) -std=c++11
 OPT        = -O3
 DEBUG      = -O0 -g
 
@@ -17,6 +17,7 @@ HEADERS = $(INCLUDE)/tachy_aligned_allocator.h \
 	  $(INCLUDE)/tachy_lagged_vector.h \
 	  $(INCLUDE)/tachy_linear_spline_incr_slope.h \
 	  $(INCLUDE)/tachy_linear_spline_uniform.h \
+	  $(INCLUDE)/tachy_linear_spline_uniform_index.h \
 	  $(INCLUDE)/tachy_random_engine.h \
 	  $(INCLUDE)/tachy_scalar.h \
 	  $(INCLUDE)/tachy_spline_util.h \

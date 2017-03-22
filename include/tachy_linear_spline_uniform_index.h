@@ -1,5 +1,5 @@
-#ifndef TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED
-#define TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED
+#ifndef TACHY_LINEAR_SPLINE_UNIFORM_INDEX_H__INCLUDED
+#define TACHY_LINEAR_SPLINE_UNIFORM_INDEX_H__INCLUDED
 
 #include <cassert>
 #include <cmath>
@@ -20,7 +20,7 @@
 namespace tachy
 {
       template <typename NumType>
-      class linear_spline_uniform
+      class linear_spline_uniform_index
       {
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
@@ -29,12 +29,15 @@ namespace tachy
             std::string _key;
 
             unsigned int _size;
-
+            unsigned int _idx_size;
+            
             NumType  _dx;
             NumType  _x0;
             NumType* _a;
             NumType* _b;
 
+            unsigned int* _idx;
+            
             typename arch_traits_t::packed_t _dx_packed;
             typename arch_traits_t::packed_t _x0_packed;
 
@@ -48,42 +51,45 @@ namespace tachy
             {
                   spline_util<NumType>::deallocate(_a);
                   spline_util<NumType>::deallocate(_b);
-                  _a = _b = 0;
+                  spline_util<NumType>::deallocate(_idx);
+                  _a = _b = nullptr;
+                  _idx = nullptr;
                   _x0 = NumType(0);
                   _dx = NumType(0);
-                  _size = 0;
+                  _size = _idx_size = 0;
             }
 
-            void copy(const std::string& key, unsigned int size, NumType dx, const NumType x0, const NumType* a, const NumType* b)
+            void copy(const std::string& key, unsigned int size, unsigned int uniform_size, NumType dx, const NumType x0, const NumType* a, const NumType* b, const unsigned int* idx)
             {
-                  assert(_a == 0 && _b == 0);
+                  assert(_a == 0 && _b == 0 && _idx == 0);
                   _key = key;
                   _size = size;
                   _a = spline_util<NumType>::allocate(size);
                   _b = spline_util<NumType>::allocate(size);
+                  _idx = spline_util<NumType>::allocate(uniform_size);
                   _dx = dx;
                   _x0 = x0;
-                  for (int i = 0; i < _size; ++i)
-                  {
-                        _a[i] = a[i];
-                        _b[i] = b[i];
-                  }
+                  memcpy(_a, a, _size*sizeof(NumType));
+                  memcpy(_b, b, _size*sizeof(NumType));
+                  memcpy(_idx, idx, uniform_size*sizeof(unsigned int));
                   set_packed();
             }
 
       public:
-            typedef linear_spline_uniform<NumType> spline_t;
+            typedef linear_spline_uniform_index<NumType> spline_t;
 
-            linear_spline_uniform() :
-                  _key("DUMMY LSu"),
+            linear_spline_uniform_index() :
+                  _key("DUMMY LSui"),
                   _a(0),
-                  _b(0)
+                  _b(0),
+                  _idx(0)
             {}
             
-            linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) :
-                  _key("LSu_" + name),
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) :
+                  _key("LSui_" + name),
                   _a(0),
-                  _b(0)
+                  _b(0),
+                  _idx(0)
             {
                   const NumType k_eps = spline_util<NumType>::epsilon();
 
@@ -121,62 +127,77 @@ namespace tachy
 
                   NumType delta = k_eps*d0;
                   _dx = 1.0/delta;
-                  _x0 = nodes[0].first - delta;
-                  int raw_size = nodes.size();
-                  NumType x1 = nodes[raw_size-1].first + delta;
-                  _size = (unsigned int)((x1 - _x0)*_dx + 0.5);
-                  TACHY_LOG("Uniform grid size: " << _size);
+                  _x0 = nodes.front().first - delta;
 
+                  unsigned int raw_size = nodes.size();
+                  _size = raw_size + 1;
                   _a = spline_util<NumType>::allocate(_size);
                   _b = spline_util<NumType>::allocate(_size);
-
-                  NumType x = _x0 + 0.5*delta;
-                  int idx = -1;
-                  NumType slope = 0.0;
-                  NumType addon = 0.0;
                   _a[0] = _b[0] = 0.0;
-                  for (int k = 1; k < _size; ++k)
+                  for (int i = 1; i < _size; ++i)
+                  {
+                        _b[i] = _b[i-1] + nodes[i-1].second;
+                        _a[i] = _a[i-1] - nodes[i-1].second*nodes[i-1].first;
+                  }
+                  
+                  NumType x1 = nodes.back().first + delta;
+                  _idx_size = (unsigned int)((x1 - _x0)*_dx + 0.5);
+                  _idx = spline_util<NumType>::template allocate<unsigned>(_idx_size);
+                  NumType x = _x0 + 0.5*delta;
+                  unsigned int idx = 0;
+                  _idx[0] = idx;
+                  for (int k = 1; k < _idx_size; ++k)
                   {
                         x += delta;
-                        if (idx < raw_size && x > nodes[idx+1].first)
-                        {
+                        if (idx < raw_size && x > nodes[idx].first)
                               ++idx;
-                              slope += nodes[idx].second;
-                              addon -= nodes[idx].second*nodes[idx].first;
-                        }
-                        _b[k] = slope;
-                        _a[k] = addon;
+                        _idx[k] = idx;
                   }
 
                   set_packed();
             }
 
-            linear_spline_uniform(const linear_spline_uniform& other) :
+            linear_spline_uniform_index(const linear_spline_uniform_index& other) :
                   _a(0),
-                  _b(0)
+                  _b(0),
+                  _idx(0)
             {
                   TACHY_LOG("Copying a uniform linear spline");
-                  copy(other._key, other._size, other._dx, other._x0, other._a, other._b);
+                  copy(other._key,
+                       other._size,
+                       other._idx_size,
+                       other._dx,
+                       other._x0,
+                       other._a,
+                       other._b,
+                       other._idx);
             }
 
-            ~linear_spline_uniform()
+            ~linear_spline_uniform_index()
             {
                   clear();
             }
 
-            linear_spline_uniform& operator= (const linear_spline_uniform& other)
+            linear_spline_uniform_index& operator= (const linear_spline_uniform_index& other)
             {
                   if (this != &other)
                   {
                         clear();
-                        copy(other._key, other._size, other._dx, other._x0, other._a, other._b);
+                        copy(other._key,
+                             other._size,
+                             other._idx_size,
+                             other._dx,
+                             other._x0,
+                             other._a,
+                             other._b,
+                             other._idx);
                   }
                   return *this;
             }
 
             inline NumType operator()(NumType x) const
             {
-                  int i = std::max<int>(0, std::min<int>(int((x - _x0)*_dx), _size-1));
+                  int i = _idx[std::max<int>(0, std::min<int>(int((x - _x0)*_dx), _idx_size-1))];
                   return _a[i] + _b[i]*x;
             }
 
@@ -198,4 +219,4 @@ namespace tachy
       };
 }
 
-#endif // TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED
+#endif // TACHY_LINEAR_SPLINE_UNIFORM_INDEX_H__INCLUDED

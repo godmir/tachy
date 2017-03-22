@@ -18,14 +18,15 @@ namespace tachy
                   return NumType(1e-6);
             }
 
-            static inline NumType* allocate(unsigned int sz)
+            template <typename T = NumType>
+            static inline T* allocate(unsigned int sz)
             {
-                  void* p = aligned_malloc(sz*sizeof(NumType), arch_traits<NumType, tachy::ACTIVE_ARCH_TYPE>::align);
-                  return new (p) NumType[sz];
-                  // return new NumType[sz]; // TODO: change to aligned allocation
+                  void* p = aligned_malloc(sz*sizeof(T), arch_traits<NumType, tachy::ACTIVE_ARCH_TYPE>::align);
+                  return new (p) T[sz];
             }
 
-            static inline void deallocate(NumType*& p)
+            template <typename T = NumType>
+            static inline void deallocate(T*& p)
             {
                   aligned_free(p);
                   p = 0;
