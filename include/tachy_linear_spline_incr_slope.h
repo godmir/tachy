@@ -42,8 +42,8 @@ namespace tachy
                   assert(_nodes == 0 && _slopes == 0);
                   _key = key;
                   _size = size;
-                  _nodes = spline_util<NumType>::allocate(size);
-                  _slopes = spline_util<NumType>::allocate(size);
+                  _nodes = spline_util<NumType>::template allocate<NumType>(size);
+                  _slopes = spline_util<NumType>::template allocate<NumType>(size);
                   for (int i = 0; i < _size; ++i)
                   {
                         _nodes[i] = n[i];
@@ -61,8 +61,8 @@ namespace tachy
                   _nodes(0),
                   _slopes(0)
             {
-                  _nodes = spline_util<NumType>::allocate(_size);
-                  _slopes = spline_util<NumType>::allocate(_size);
+                  _nodes = spline_util<NumType>::template allocate<NumType>(_size);
+                  _slopes = spline_util<NumType>::template allocate<NumType>(_size);
                   for (int i = 0; i < _size; ++i)
                   {
                         _nodes[i] = nodes[i].first;

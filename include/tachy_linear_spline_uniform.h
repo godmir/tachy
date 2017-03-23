@@ -59,8 +59,8 @@ namespace tachy
                   assert(_a == 0 && _b == 0);
                   _key = key;
                   _size = size;
-                  _a = spline_util<NumType>::allocate(size);
-                  _b = spline_util<NumType>::allocate(size);
+                  _a = spline_util<NumType>::template allocate<NumType>(size);
+                  _b = spline_util<NumType>::template allocate<NumType>(size);
                   _dx = dx;
                   _x0 = x0;
                   for (int i = 0; i < _size; ++i)
@@ -127,8 +127,8 @@ namespace tachy
                   _size = (unsigned int)((x1 - _x0)*_dx + 0.5);
                   TACHY_LOG("Uniform grid size: " << _size);
 
-                  _a = spline_util<NumType>::allocate(_size);
-                  _b = spline_util<NumType>::allocate(_size);
+                  _a = spline_util<NumType>::template allocate<NumType>(_size);
+                  _b = spline_util<NumType>::template allocate<NumType>(_size);
 
                   NumType x = _x0 + 0.5*delta;
                   int idx = -1;

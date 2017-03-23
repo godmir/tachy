@@ -52,8 +52,6 @@ namespace tachy
                   spline_util<NumType>::deallocate(_a);
                   spline_util<NumType>::deallocate(_b);
                   spline_util<NumType>::deallocate(_idx);
-                  _a = _b = nullptr;
-                  _idx = nullptr;
                   _x0 = NumType(0);
                   _dx = NumType(0);
                   _size = _idx_size = 0;
@@ -131,8 +129,8 @@ namespace tachy
 
                   unsigned int raw_size = nodes.size();
                   _size = raw_size + 1;
-                  _a = spline_util<NumType>::allocate(_size);
-                  _b = spline_util<NumType>::allocate(_size);
+                  _a = spline_util<NumType>::template allocate<NumType>(_size);
+                  _b = spline_util<NumType>::template allocate<NumType>(_size);
                   _a[0] = _b[0] = 0.0;
                   for (int i = 1; i < _size; ++i)
                   {

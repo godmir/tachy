@@ -1,7 +1,7 @@
 CXXTESTGEN = cxxtestgen
 CXX        = g++
 INCLUDE    = ../include
-CXXFLAGS   = -I$(INCLUDE) -std=c++11
+CXXFLAGS   = -I$(INCLUDE) #-std=c++11
 OPT        = -O3
 DEBUG      = -O0 -g
 
@@ -113,5 +113,7 @@ example_sse2: example.cpp $(HEADERS)
 example_base: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mno-sse2 $<
 
+.PHONY: example
+
 clean:
-	rm -f $(TESTS) $(addsuffix .debug, $(TESTS)) test_suite.cpp example_{avx2,avx,sse2,base}
+	rm -f $(TESTS) $(addsuffix .debug, $(TESTS)) test_suite.cpp $(addprefix example_,avx2 avx sse2 base fma fmavx2)
