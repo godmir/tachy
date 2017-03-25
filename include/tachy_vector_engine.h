@@ -74,6 +74,7 @@ namespace tachy
 
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
+                  // can this be improved? or is it faster to go with unaligned load than to branch?
                   return arch_traits_t::loadu(&_data[idx + _num_hist]);
             }
 

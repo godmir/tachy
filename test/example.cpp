@@ -41,7 +41,7 @@ struct Model
       const unsigned int nProj;
       const real_t eiOffset;
 
-      typedef tachy::linear_spline_uniform<real_t> Spline_t;
+      typedef tachy::linear_spline_uniform_index<real_t> Spline_t;
 
       Spline_t baseRefi;
       
@@ -317,7 +317,16 @@ void runAll(const Model& model, const vector<Pool*>& collateral, int projDate, i
 
                   AgeVec2_t wala("wala", projDate, AgeVec2_t::data_engine_t(p->wala, p->wam), *p);
 
-                  smrRefi = (1.0 - 0.25*exp(1.0 - actAmort/200000.0))*(1.0 + 0.2*exp(-wala/36.0))*(0.6*model.baseRefi(pmtRatio3) + 0.4*model.baseRefi(pmtRatio3[t+1]) - 1.0)*exp(0.25*burnout);
+                  std::vector<CVec2_t> modulation;
+                  modulation.reserve(model.baseRefi.get_num_nodes());
+                  for (int i = 0; i < model.baseRefi.get_num_nodes(); ++i)
+                  {
+                        CVec2_t a_mod = 1.0/(1.0 + i)*(1.0 + 0.2*exp(-wala/36.0))*(1.0 - actAmort/200000.0);
+                        modulation.push_back(a_mod);
+                  }
+                  tachy::mod_linear_spline_uniform_index<real_t, 2U> adjRefi(model.baseRefi, modulation);
+
+                  smrRefi = (1.0 - 0.25*exp(1.0 - actAmort/200000.0))*(1.0 + 0.2*exp(-wala/36.0))*(0.6*adjRefi(pmtRatio3) + 0.4*adjRefi(pmtRatio3[t+1]) - 1.0)*exp(0.25*burnout);
 
                   // other pieces of total smm can be done similarly
             }

@@ -1,5 +1,5 @@
-#if !defined(TACHY_CALC_CACHE_H)
-#define TACHY_CALC_CACHE_H
+#if !defined(TACHY_CALC_CACHE_H__INCLUDED)
+#define TACHY_CALC_CACHE_H__INCLUDED
 
 #include <iostream>
 #include <vector>
@@ -105,7 +105,7 @@ namespace tachy
             {
                   typename cache_engine_t::iterator i = _cache.find(key);
                   if (i == _cache.end())
-                        throw std::string("calc_cache::get: No such key");
+                        TACHY_THROW("calc_cache::get: No such key");
 #if defined(TACHY_VERBOSE)
                   ++_use_count[key];
 #endif
@@ -291,4 +291,4 @@ namespace tachy
       };
 }
 
-#endif // TACHY_CALC_CACHE_H
+#endif // TACHY_CALC_CACHE_H__INCLUDED

@@ -71,7 +71,7 @@ namespace tachy
             typedef arch_traits<NumType, tachy::ACTIVE_ARCH_TYPE> arch_traits_t;
 
             op_engine(const std::string& key, const Op1& op1, const Op2& op2, calc_cache<NumType, Level>& cache) :
-                  _res(dynamic_cast<vector_engine<double>*>(cache[key]))
+                  _res(dynamic_cast<vector_engine<NumType>*>(cache[key]))
             {
                   if (0 == _res || 0 == _res->size())
                   {

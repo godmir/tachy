@@ -1,4 +1,4 @@
-#ifndef TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED
+#if !defined(TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED)
 #define TACHY_LINEAR_SPLINE_UNIFORM_H__INCLUDED
 
 #include <cassert>
@@ -80,7 +80,7 @@ namespace tachy
                   _b(0)
             {}
             
-            linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) :
+            linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
                   _key("LSu_" + name),
                   _a(0),
                   _b(0)
@@ -91,33 +91,19 @@ namespace tachy
                   for (int i = 1; i < nodes.size(); ++i)
                         deltas.insert((unsigned int)((nodes[i].first - nodes[i-1].first)/k_eps + 0.5));
 
-#if defined(TACHY_VERBOSE)
-                  TACHY_LOG("Got " << deltas.size() << " deltas");
-                  for (std::set<unsigned int>::const_iterator j = deltas.begin(); j != deltas.end(); ++j)
-                        TACHY_LOG(*j);
-#endif
-
                   bool uniform = deltas.size() == 1;
-                  double d0 = 0.0;
+                  NumType d0 = 0.0;
                   if (!uniform)
                   {
                         std::set<unsigned int>::const_iterator i = deltas.begin();
                         d0 = *i;
                         for (++i; i != deltas.end(); ++i)
-                        {
                               d0 = spline_util<NumType>::gcd(d0, *i);
-                        }
                         if (d0 > 0)
-                        {
-                              TACHY_LOG("uniform grid step: " << d0);
                               uniform = true;
-                        }
+                        else
+                              TACHY_THROW("Cannot convert spline to uniform");
                   }
-
-                  TACHY_LOG("Uniform: " << (uniform ? "ok" : "NOT ok"));
-
-                  if (!uniform)
-                        throw std::string("Cannot convert spline to uniform");
 
                   NumType delta = k_eps*d0;
                   _dx = 1.0/delta;

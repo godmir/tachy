@@ -1,5 +1,5 @@
-#ifndef TACHY_ARCH_TRAITS_H
-#define TACHY_ARCH_TRAITS_H
+#if !defined(TACHY_ARCH_TRAITS_H__INCLUDED)
+#define TACHY_ARCH_TRAITS_H__INCLUDED
 
 #if defined(__MMX__)
 #include <mmintrin.h>  /* MMX  __m64 int */
@@ -117,9 +117,9 @@ namespace tachy
             {
                   return *x;
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  return i;
+                  return *i;
             }
             static inline packed_t zero()
             {
@@ -128,6 +128,10 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return x;
+            }
+            static inline index_t iset1(const int i)
+            {
+                  return i;
             }
             static inline index_t cvti(const packed_t x)
             {
@@ -165,6 +169,22 @@ namespace tachy
             {
                   return std::min(a, x);
             }
+            static inline index_t iadd(const index_t i, const index_t j)
+            {
+                  return i + j;
+            }
+            static inline index_t isub(const index_t i, const index_t j)
+            {
+                  return i - j;
+            }
+            static inline index_t imul(const index_t i, const index_t j)
+            {
+                  return i * j;
+            }
+            static inline index_t idiv(const index_t i, const index_t j)
+            {
+                  return i / j;
+            }
             static inline index_t imax(const int a, const index_t& i)
             {
                   return std::max(a, i);
@@ -189,6 +209,10 @@ namespace tachy
             {
                   return s[i];
             }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  return is[i];
+            }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
                   return x*y + c;
@@ -211,9 +235,9 @@ namespace tachy
             {
                   return _mm_setr_ps(x[0], x[1], x[2], x[3]);
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  index_t idx = { i, i, i, i };
+                  index_t idx = { i[0], i[1], i[2], i[3] };
                   return idx;
             }
             static inline packed_t zero()
@@ -223,6 +247,11 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return _mm_set1_ps(x);
+            }
+            static inline index_t iset1(const int i)
+            {
+                  index_t idx = { i, i, i, i };
+                  return idx;
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -270,6 +299,38 @@ namespace tachy
             {
                   return _mm_min_ps(x, y);
             }
+            static inline index_t iadd(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] + ((int*)(&j))[0],
+                                  ((int*)(&i))[1] + ((int*)(&j))[1],
+                                  ((int*)(&i))[2] + ((int*)(&j))[2],
+                                  ((int*)(&i))[3] + ((int*)(&j))[3] };
+                  return idx;
+            }
+            static inline index_t isub(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] - ((int*)(&j))[0],
+                                  ((int*)(&i))[1] - ((int*)(&j))[1],
+                                  ((int*)(&i))[2] - ((int*)(&j))[2],
+                                  ((int*)(&i))[3] - ((int*)(&j))[3] };
+                  return idx;
+            }
+            static inline index_t imul(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] * ((int*)(&j))[0],
+                                  ((int*)(&i))[1] * ((int*)(&j))[1],
+                                  ((int*)(&i))[2] * ((int*)(&j))[2],
+                                  ((int*)(&i))[3] * ((int*)(&j))[3] };
+                  return idx;
+            }
+            static inline index_t idiv(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] / ((int*)(&j))[0],
+                                  ((int*)(&i))[1] / ((int*)(&j))[1],
+                                  ((int*)(&i))[2] / ((int*)(&j))[2],
+                                  ((int*)(&i))[3] / ((int*)(&j))[3] };
+                  return idx;
+            }
             static inline index_t imax(const int a, const index_t& i)
             {
                   index_t idx = { std::max(a, ((int*)(&i))[0]),
@@ -303,8 +364,18 @@ namespace tachy
             }
             static inline packed_t gather(const scalar_t* s, const index_t& i)
             {
-                  return _mm_setr_ps(s[((int*)(&i))[0]], s[((int*)(&i))[1]],
-                                     s[((int*)(&i))[2]], s[((int*)(&i))[3]]);
+                  return _mm_setr_ps(s[((int*)(&i))[0]],
+                                     s[((int*)(&i))[1]],
+                                     s[((int*)(&i))[2]],
+                                     s[((int*)(&i))[3]]);
+            }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  index_t idx = { is[((int*)(&i))[0]],
+                                  is[((int*)(&i))[1]],
+                                  is[((int*)(&i))[2]],
+                                  is[((int*)(&i))[3]] };
+                  return idx;
             }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
@@ -329,9 +400,9 @@ namespace tachy
             {
                   return _mm_loadu_pd(x);
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  return _mm_set_pi32(i, i);
+                  return _mm_setr_pi32(i[0], i[1]);
             }
             static inline packed_t zero()
             {
@@ -340,6 +411,10 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return _mm_set1_pd(x);
+            }
+            static inline index_t iset1(const int i)
+            {
+                  return _mm_set_pi32(i, i);
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -379,6 +454,24 @@ namespace tachy
             {
                   return _mm_min_pd(x, y);
             }
+            static inline index_t iadd(const index_t& i, const index_t& j)
+            {
+                  return _mm_add_pi32(i, j);
+            }
+            static inline index_t isub(const index_t& i, const index_t& j)
+            {
+                  return _mm_sub_pi32(i, j);
+            }
+            static inline index_t imul(const index_t& i, const index_t& j)
+            {
+                  return _mm_setr_pi32(((int*)(&i))[0] * ((int*)(&j))[0],
+                                       ((int*)(&i))[1] * ((int*)(&j))[1]);
+            }
+            static inline index_t idiv(const index_t& i, const index_t& j)
+            {
+                  return _mm_setr_pi32(((int*)(&i))[0] / ((int*)(&j))[0],
+                                       ((int*)(&i))[1] / ((int*)(&j))[1]);
+            }
             static inline index_t imax(const int a, const index_t& i)
             {
                   return _mm_setr_pi32(std::max(a, ((int*)(&i))[0]),
@@ -406,6 +499,10 @@ namespace tachy
             {
                   return _mm_setr_pd(s[((int*)(&i))[0]], s[((int*)(&i))[1]]);
             }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  return _mm_setr_pi32(is[((int*)(&i))[0]], is[((int*)(&i))[1]]);
+            }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
                   return add(mul(x, y), c);
@@ -429,9 +526,9 @@ namespace tachy
             {
                   return _mm_loadu_ps(x);
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  return _mm_set_epi32(i, i, i, i);
+                  return _mm_setr_epi32(i[0], i[1], i[2], i[3]);
             }
             static inline packed_t zero()
             {
@@ -440,6 +537,10 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return _mm_set1_ps(x);
+            }
+            static inline index_t iset1(const int i)
+            {
+                  return _mm_set1_epi32(i);
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -483,6 +584,32 @@ namespace tachy
             {
                   return _mm_min_ps(x, y);
             }
+            static inline index_t iadd(const index_t& i, const index_t& j)
+            {
+                  return _mm_add_epi32(i, j);
+            }
+            static inline index_t isub(const index_t& i, const index_t& j)
+            {
+                  return _mm_sub_epi32(i, j);
+            }
+            static inline index_t imul(const index_t& i, const index_t& j)
+            {
+#if defined(__SSE4_1__)
+                  return _mm_mullo_epi32(i, j);
+#else
+                  return _mm_setr_epi32(((int*)(&i))[0] * ((int*)(&j))[0],
+                                        ((int*)(&i))[1] * ((int*)(&j))[1],
+                                        ((int*)(&i))[2] * ((int*)(&j))[2],
+                                        ((int*)(&i))[3] * ((int*)(&j))[3]);
+#endif
+            }
+            static inline index_t idiv(const index_t& i, const index_t& j)
+            {
+                  return _mm_setr_epi32(((int*)(&i))[0] / ((int*)(&j))[0],
+                                        ((int*)(&i))[1] / ((int*)(&j))[1],
+                                        ((int*)(&i))[2] / ((int*)(&j))[2],
+                                        ((int*)(&i))[3] / ((int*)(&j))[3]);
+            }
             static inline index_t imax(const int a, const index_t& i)
             {
                   return _mm_setr_epi32(std::max(a, ((int*)(&i))[0]),
@@ -514,8 +641,17 @@ namespace tachy
             }
             static inline packed_t gather(const scalar_t* s, const index_t& i)
             {
-                  return _mm_setr_ps(s[((int*)(&i))[0]], s[((int*)(&i))[1]],
-                                     s[((int*)(&i))[2]], s[((int*)(&i))[3]]);
+                  return _mm_setr_ps(s[((int*)(&i))[0]],
+                                     s[((int*)(&i))[1]],
+                                     s[((int*)(&i))[2]],
+                                     s[((int*)(&i))[3]]);
+            }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  return _mm_setr_epi32(is[((int*)(&i))[0]],
+                                        is[((int*)(&i))[1]],
+                                        is[((int*)(&i))[2]],
+                                        is[((int*)(&i))[3]]);
             }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
@@ -540,9 +676,9 @@ namespace tachy
             {
                   return _mm256_loadu_pd(x);
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  return _mm_set_epi32(i, i, i, i);
+                  return _mm_setr_epi32(i[0], i[1], i[2], i[3]);
             }
             static inline packed_t zero()
             {
@@ -551,6 +687,10 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return _mm256_set1_pd(x);
+            }
+            static inline index_t iset1(const int i)
+            {
+                  return _mm_set_epi32(i, i, i, i);
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -588,13 +728,32 @@ namespace tachy
             {
                   return _mm256_min_pd(x, y);
             }
+            static inline index_t iadd(const index_t& i, const index_t& j)
+            {
+                  return _mm_add_epi32(i, j);
+            }
+            static inline index_t isub(const index_t& i, const index_t& j)
+            {
+                  return _mm_sub_epi32(i, j);
+            }
+            static inline index_t imul(const index_t& i, const index_t& j)
+            {
+                  return _mm_mullo_epi32(i, j);
+            }
+            static inline index_t idiv(const index_t& i, const index_t& j)
+            {
+                  return _mm_setr_epi32(((int*)(&i))[0] / ((int*)(&j))[0],
+                                        ((int*)(&i))[1] / ((int*)(&j))[1],
+                                        ((int*)(&i))[2] / ((int*)(&j))[2],
+                                        ((int*)(&i))[3] / ((int*)(&j))[3]);
+            }
             static inline index_t imax(const int a, const index_t& i)
             {
-                  return _mm_max_epi32(iload(a), i);
+                  return _mm_max_epi32(iset1(a), i);
             }
             static inline index_t imin(const int a, const index_t& i)
             {
-                  return _mm_min_epi32(iload(a), i);
+                  return _mm_min_epi32(iset1(a), i);
             }
             static inline packed_t sqrt(const packed_t& x)
             {
@@ -618,6 +777,13 @@ namespace tachy
                                         s[((int*)(&i))[2]],
                                         s[((int*)(&i))[3]]);
             }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  return _mm_setr_epi32(is[((int*)(&i))[0]],
+                                        is[((int*)(&i))[1]],
+                                        is[((int*)(&i))[2]],
+                                        is[((int*)(&i))[3]]);
+            }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
                   return add(mul(x, y), c);
@@ -631,6 +797,10 @@ namespace tachy
             static inline packed_t gather(const scalar_t* s, const index_t& i)
             {
                   return _mm256_i32gather_pd(s, i, 8);
+            }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  return _mm_i32gather_epi32(is, i, 4);
             }
 #endif
       };
@@ -672,9 +842,9 @@ namespace tachy
             {
                   return _mm256_loadu_ps(x);
             }
-            static inline index_t iload(const int i)
+            static inline index_t iload(const int* i)
             {
-                  index_t idx = { i, i, i, i, i, i, i, i };
+                  index_t idx = { i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7] };
                   return idx;
             }
             static inline packed_t zero()
@@ -684,6 +854,11 @@ namespace tachy
             static inline packed_t set1(const scalar_t x)
             {
                   return _mm256_set1_ps(x);
+            }
+            static inline index_t iset1(const int i)
+            {
+                  index_t idx = { i, i, i, i, i, i, i, i };
+                  return idx;
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -728,6 +903,54 @@ namespace tachy
             static inline packed_t min(const packed_t& x, const packed_t& y)
             {
                   return _mm256_min_ps(x, y);
+            }
+            static inline index_t iadd(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] + ((int*)(&j))[0],
+                                  ((int*)(&i))[1] + ((int*)(&j))[1],
+                                  ((int*)(&i))[2] + ((int*)(&j))[2],
+                                  ((int*)(&i))[3] + ((int*)(&j))[3],
+                                  ((int*)(&i))[4] + ((int*)(&j))[4],
+                                  ((int*)(&i))[5] + ((int*)(&j))[5],
+                                  ((int*)(&i))[6] + ((int*)(&j))[6],
+                                  ((int*)(&i))[7] + ((int*)(&j))[7] };
+                  return idx;
+            }
+            static inline index_t isub(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] - ((int*)(&j))[0],
+                                  ((int*)(&i))[1] - ((int*)(&j))[1],
+                                  ((int*)(&i))[2] - ((int*)(&j))[2],
+                                  ((int*)(&i))[3] - ((int*)(&j))[3],
+                                  ((int*)(&i))[4] - ((int*)(&j))[4],
+                                  ((int*)(&i))[5] - ((int*)(&j))[5],
+                                  ((int*)(&i))[6] - ((int*)(&j))[6],
+                                  ((int*)(&i))[7] - ((int*)(&j))[7] };
+                  return idx;
+            }
+            static inline index_t imul(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] * ((int*)(&j))[0],
+                                  ((int*)(&i))[1] * ((int*)(&j))[1],
+                                  ((int*)(&i))[2] * ((int*)(&j))[2],
+                                  ((int*)(&i))[3] * ((int*)(&j))[3],
+                                  ((int*)(&i))[4] * ((int*)(&j))[4],
+                                  ((int*)(&i))[5] * ((int*)(&j))[5],
+                                  ((int*)(&i))[6] * ((int*)(&j))[6],
+                                  ((int*)(&i))[7] * ((int*)(&j))[7] };
+                  return idx;
+            }
+            static inline index_t idiv(const index_t& i, const index_t& j)
+            {
+                  index_t idx = { ((int*)(&i))[0] / ((int*)(&j))[0],
+                                  ((int*)(&i))[1] / ((int*)(&j))[1],
+                                  ((int*)(&i))[2] / ((int*)(&j))[2],
+                                  ((int*)(&i))[3] / ((int*)(&j))[3],
+                                  ((int*)(&i))[4] / ((int*)(&j))[4],
+                                  ((int*)(&i))[5] / ((int*)(&j))[5],
+                                  ((int*)(&i))[6] / ((int*)(&j))[6],
+                                  ((int*)(&i))[7] / ((int*)(&j))[7] };
+                  return idx;
             }
             static inline index_t imax(const int a, const index_t& i)
             {
@@ -783,6 +1006,18 @@ namespace tachy
                                         s[((int*)(&i))[6]],
                                         s[((int*)(&i))[7]]);
             }
+            static inline index_t igather(const int* is, const index_t& i)
+            {
+                  index_t idx = { is[((int*)(&i))[0]],
+                                  is[((int*)(&i))[1]],
+                                  is[((int*)(&i))[2]],
+                                  is[((int*)(&i))[3]],
+                                  is[((int*)(&i))[4]],
+                                  is[((int*)(&i))[5]],
+                                  is[((int*)(&i))[6]],
+                                  is[((int*)(&i))[7]] };
+                  return idx;
+            }
             static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
             {
                   return add(mul(x, y), c);
@@ -791,4 +1026,4 @@ namespace tachy
       };
 }
 
-#endif // TACHY_ARCH_TRAITS_H
+#endif // TACHY_ARCH_TRAITS_H__INCLUDED

@@ -94,7 +94,7 @@ namespace tachy
 
             inline NumType operator()(NumType x) const
             {
-                  double y = 0.0;
+                  NumType y = 0.0;
                   for (int i = 0; i < _size; ++i)
                         y += _slopes[i]*std::max<NumType>(0.0, x - _nodes[i]);
                   return y;

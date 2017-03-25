@@ -35,7 +35,6 @@ namespace tachy
                   _engine(eng),
                   _cache(cache)
             {
-                  // 3200 calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): c-2: Creating copy from same engine: " /* << typeid(eng).name() << " " */ << id);
             }
 
@@ -47,19 +46,17 @@ namespace tachy
                   _engine(id, eng1, eng2, cache),
                   _cache(cache)
             {
-                  // 400 calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): c-3: Creating " << id << " from a pair of engines");
             }
 
 #if 0 // this cannot work when DataEngine is NOT std::vector
-            // works for proxy vectors
+            // for proxy vectors
             calc_vector(const std::string& id, int date, cache_t& cache) :
                   _id(id),
                   _anchor_date(date),
                   _engine(_cache[id]),
                   _cache(cache)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): c-4: Creating proxy in place: " << id);
             }
 #endif
@@ -69,26 +66,24 @@ namespace tachy
                   _engine(other.size()),
                   _cache(cache)
             {
-                  // no calls @ 10x20
-                  TACHY_LOG("calc_vector (L>0): c-6: Creating from a different engine: " << _id << " from " << other.getId() << "<" << cache_t::CacheLevel << ">");
-                  _id = other.getId();
-                  _anchor_date = other.getStartDate();
-                  for ( int i = 0, iLast = _engine.size(); i < iLast; ++i )
+                  TACHY_LOG("calc_vector (L>0): c-6: Creating from a different engine: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
+                  _id = other.get_id();
+                  _anchor_date = other.get_start_date();
+                  for ( int i = 0, i_last = _engine.size(); i < i_last; ++i )
                         _engine[i] = other[i];
             }
 
             template <class OtherDataEngine, unsigned int OtherLevel>
             calc_vector& operator= (const calc_vector<NumType, OtherDataEngine, OtherLevel>& other)
             {
-                  // no calls @ 10x20
-                  TACHY_LOG("calc_vector (L>0): assigning: " << _id << " = " << other.getId());
+                  TACHY_LOG("calc_vector (L>0): assigning: " << _id << " = " << other.get_id());
 
                   // need a compile time assert here Level <= OtherLevel
                   // at run-time, it should be valid only if the current vector hasn't been cached yet
-                  _id = other.getId();
-                  _anchor_date = other.getStartDate();
+                  _id = other.get_id();
+                  _anchor_date = other.get_start_date();
                   _engine.resize(other.size(), NumType());
-                  for ( int i = 0, iLast = _engine.size(); i < iLast; ++i )
+                  for ( int i = 0, i_last = _engine.size(); i < i_last; ++i )
                         engine[i] = other[i];
 
                   return *this;
@@ -167,7 +162,7 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::CacheLevel << ">[" << _id << "], anchor date = " << _anchor_date << "\n";
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], anchor date = " << _anchor_date << "\n";
                   for (int i = 0; i < _engine.size(); ++i)
                         to << _engine[i] << "\n";
                   to.flush();
@@ -198,7 +193,6 @@ namespace tachy
                   _own_engine(true),
                   _cache(cache)
             {
-                  // 10 calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): c-1V: creating from cache & size: " << id);
                   _engine = new data_engine_t(size, NumType(0));
             }
@@ -208,7 +202,6 @@ namespace tachy
                   _anchor_date(date),
                   _cache(cache)
             {
-                  // no calls @ 10x20
                   const typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
                   if (k == _cache.end())
                   {
@@ -231,7 +224,6 @@ namespace tachy
                   _own_engine(false),
                   _cache(cache)
             {
-                  // 200 calls @ 10x20 -- when creating act pmts vector in Pool::getPmts
                   TACHY_LOG("calc_vector (L>0): c-4V: Creating proxy in place: " << id);
                   _engine = dynamic_cast<data_engine_t*>(_cache[_id]);
             }
@@ -243,10 +235,10 @@ namespace tachy
                   _own_engine(true)
             {
                   // TODO: add static assert that OtherLevel >= Level -- same logic as for assignment
-                  TACHY_LOG("calc_vector (L>0): c-6V: Creating from a different engine: " << _id << " from " << other.get_id() << "<" << cache_t::CacheLevel << ">");
+                  TACHY_LOG("calc_vector (L>0): c-6V: Creating from a different engine: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
                   _anchor_date = other.get_start_date();
                   _id = other.get_id();
-                  const typename cache_t::CacheEngine_t::const_iterator k = _cache.find(_id);
+                  const typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
                   if (k == _cache.end())
                   {
                         unsigned int sz = other.size();
@@ -259,7 +251,7 @@ namespace tachy
                   else
                   {
                         _engine = dynamic_cast<data_engine_t*>(k->second);
-                        _ownEngine = false;
+                        _own_engine = false;
                   }
             }
 #endif
@@ -271,11 +263,10 @@ namespace tachy
                   _own_engine(true),
                   _cache(other.cache())
             {
-                  //
-                  TACHY_LOG("calc_vector (L>0): c-7o: Creating from a different engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::CacheLevel << ">");
+                  TACHY_LOG("calc_vector (L>0): c-7o: Creating from a different engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
                   _anchor_date = other.get_start_date();
                   _id = other.get_id();
-                  const typename cache_t::CacheEngine_t::const_iterator k = _cache.find(_id);
+                  const typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
                   if (k == _cache.end())
                   {
                         unsigned int sz = other.size();
@@ -298,14 +289,12 @@ namespace tachy
                   _own_engine(false), // RHS will take care of it - one is enough
                   _cache(other.cache())
             {
-                  //
-                  TACHY_LOG("calc_vector (L>0): c-7s: Creating from the same engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::CacheLevel << ">");
+                  TACHY_LOG("calc_vector (L>0): c-7s: Creating from the same engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
                   _id = other.get_id();
                   _anchor_date = other.get_start_date();
                   _engine = other._engine;
             }
 
-            // 10/26/2013 I am not sure it works - but still...
             template<typename T, class Functor>
             calc_vector(const std::string& id, int date, cache_t& cache, const Functor& f) :
                   _id(id),
@@ -313,7 +302,6 @@ namespace tachy
                   _own_engine(true),
                   _cache(cache)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): c-7V: Creating from a functor: " << id);
                   _engine = new data_engine_t(f.size());
                   for (int i = 0, iMax = f.size(); i < iMax; ++i)
@@ -321,15 +309,6 @@ namespace tachy
             }
 
 #if 1
-            // 04/25/14:
-            // it is unclear how assignment from either different or same kind of calc_vector should be handled
-            // e.g.:
-            // - should id be copied, or left unchanged?
-            // - should the history be copied, or not?
-            // - what should happend with the cache: if present - should it be deleted or kept; if not present, should it be added at this point?
-
-            // 05/04/14:
-            // I've got a bit more clarity:
             // for Level == 0 OR if the vector is NOT cached - just go ahead & assign as usual
             // if Level > 0 AND it is cached - then might as well throw an exception
             // Indeed: we've cached the vector to avoid recalculation - so why are we changing it again?
@@ -337,7 +316,6 @@ namespace tachy
             template <class OtherDataEngine, unsigned int OtherLevel>
             calc_vector& operator= (const calc_vector<NumType, OtherDataEngine, OtherLevel>& other)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L>0): V assigning: " << _id << " = " << other.get_id());
 
                   typename cache_t::cache_t::const_iterator k = _cache.find(_id);
@@ -467,7 +445,7 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::CacheLevel << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine->getFirst() << "\n";
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine->getFirst() << "\n";
                   for (int i = -engine->get_first(), i_last = _engine->size(); i < i_last; ++i)
                         to << (*_engine)[i] << "\n";
                   to.flush();
@@ -497,7 +475,6 @@ namespace tachy
                   _anchor_date(date),
                   _engine(eng)
             {
-                  // 400 calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-1: Creating from engine: " << id);
             }
 
@@ -506,7 +483,6 @@ namespace tachy
                   _anchor_date(date),
                   _engine(eng)
             {
-                  // 1400 calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-2: Creating from engine & dummy cache: " << id);
             }
 
@@ -517,7 +493,6 @@ namespace tachy
                   _anchor_date(date),
                   _engine(id, eng1, eng2, cache)
             {
-                  // 800 calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-3: Creating " << id << " from a pair of engines");
             }
 
@@ -526,7 +501,6 @@ namespace tachy
                   _anchor_date(other._anchor_date),
                   _engine(other._engine)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-4: Creating (same engine): " << _id << " from " << other.get_id());
             }
 
@@ -534,12 +508,11 @@ namespace tachy
             calc_vector(const calc_vector<NumType, OtherDataEngine, OtherLevel>& other) :
                   _engine(other.size())
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-5: Creating (different engine): " << _id << " from " << other.get_id() << "<" << OtherLevel << ">");
                   _id = other.get_id();
                   _anchor_date = other.get_start_date();
 
-                  for ( int i = 0, iLast = _engine.size(); i < iLast; ++i )
+                  for ( int i = 0, i_last = _engine.size(); i < i_last; ++i )
                         _engine[i] = other[i];
             }
 
@@ -548,17 +521,14 @@ namespace tachy
                   _anchor_date(date),
                   _engine(size, NumType())
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-7: Creating from size: " << id);
             }
 
-            // 10/26/2013 I am not sure it works - but still...
             template<typename T, class Functor>
             calc_vector(const std::string& id, int date, const Functor& f) :
                   _id(id),
                   _anchor_date(date)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-8: Creating from functor: " << id);
 
                   _engine.reserve(f.size());
@@ -569,10 +539,7 @@ namespace tachy
             template <class OtherDataEngine, unsigned int OtherLevel>
             self_t& operator= (const calc_vector<NumType, OtherDataEngine, OtherLevel>& other)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): assigning: " << _id << " = " << other.get_id());
-
-                  //_id = other.get_id();
                   _anchor_date = other.get_start_date();
                   _engine.resize(other.size(), NumType());
                   for ( int i = 0, i_last = _engine.size(); i < i_last; ++i )
@@ -653,7 +620,7 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::CacheLevel << ">[" << _id << "], start date = " << _anchor_date << "\n";
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << "\n";
                   for (int i = 0; i < _engine.size(); ++i)
                         to << _engine[i] << "\n";
                   to.flush();
@@ -680,7 +647,6 @@ namespace tachy
                   _anchor_date(date),
                   _engine(data, 0)
             {
-                  // 10 calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-1V: Creating from engine: " << id);
             }
 
@@ -689,7 +655,6 @@ namespace tachy
                   _anchor_date(date),
                   _engine(data, 0)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-2V: Creating from engine & dummy cache: " << id);
             }
 
@@ -698,7 +663,6 @@ namespace tachy
                   _anchor_date(other._anchor_date),
                   _engine(other._engine)
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-4V: Creating (same engine): " << _id << " from " << other.get_id());
             }
 
@@ -706,7 +670,6 @@ namespace tachy
             calc_vector(const calc_vector<NumType, OtherDataEngine, OtherLevel>& other) :
                   _engine(other.size() + other.get_num_hist(), other.get_num_hist())
             {
-                  // 200 calls @ 10x20 without prealloc
                   TACHY_LOG("calc_vector (L=0): c-5V: Creating (different engine): " << _id << " from " << other.get_id() << "<" << OtherLevel << ">");
                   _id = other.get_id();
                   _anchor_date = other.get_start_date();
@@ -719,8 +682,7 @@ namespace tachy
             calc_vector(const calc_vector<NumType, OtherDataEngine, 0>& other, cache_t& /* cache */) :
                   _engine(other.size() + other.get_num_hist(), other.get_num_hist())
             {
-                  // no calls @ 10x20
-                  TACHY_LOG("calc_vector (L=0): c-6V: Creating (different engine): " << _id << " from " << other.get_id() << "<" << cache_t::CacheLevel << ">");
+                  TACHY_LOG("calc_vector (L=0): c-6V: Creating (different engine): " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
                   _id = other.get_id();
                   _anchor_date = other.get_start_date();
                   unsigned int nh = other.get_num_hist();
@@ -733,19 +695,15 @@ namespace tachy
                   _anchor_date(date),
                   _engine(size, NumType(0))
             {
-                  // 4 calls @ 10x20 with prealloc
-                  // 201 calls @ 10x20 without prealloc
                   TACHY_LOG("calc_vector (L=0): c-7V: Creating from size: " << id);
             }
 
-            // 10/26/2013 I am not sure it works - but still...
             template<typename T, class Functor>
             calc_vector(const std::string& id, int date, const Functor& f) :
                   _id(id),
                   _anchor_date(date),
                   _engine(f.size())
             {
-                  // no calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): c-8V: Creating from functor: " << id);
 
                   for (int i = 0, i_last = f.size(); i < i_last; ++i)
@@ -755,7 +713,6 @@ namespace tachy
             template <class OtherDataEngine, unsigned int OtherLevel>
             self_t& operator= (const calc_vector<NumType, OtherDataEngine, OtherLevel>& other)
             {
-                  // 200 calls @ 10x20
                   TACHY_LOG("calc_vector (L=0): V assigning: " << _id << " = " << other.get_id());
 
                   _anchor_date = other.get_start_date();
@@ -841,7 +798,7 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::CacheLevel << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine.get_num_history() << "\n{ ";
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine.get_num_history() << "\n{ ";
                   for (int i = -_engine.get_num_history(), i_last = _engine.size()-1; i < i_last; ++i)
                         to << _engine[i] << ", ";
                   if (_engine.size() > 0)

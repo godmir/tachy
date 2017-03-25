@@ -20,6 +20,7 @@
 #include "tachy_linear_spline_incr_slope.h"
 #include "tachy_linear_spline_uniform.h"
 #include "tachy_linear_spline_uniform_index.h"
+#include "tachy_mod_linear_spline_uniform.h"
 
 class tachy_arch_traits_test_double : public CxxTest::TestSuite
 {
@@ -33,6 +34,12 @@ private:
       arch_traits_t::packed_t u;
       arch_traits_t::packed_t v;
       
+      int ix[arch_traits_t::stride] __attribute__ ((aligned(sizeof(arch_traits_t::packed_t))));
+      int iy[arch_traits_t::stride] __attribute__ ((aligned(sizeof(arch_traits_t::packed_t))));
+
+      arch_traits_t::index_t iu;
+      arch_traits_t::index_t iv;
+      
 public:
 
       void setUp()
@@ -41,9 +48,15 @@ public:
             {
                   x[i] = real_t(random())/RAND_MAX;
                   y[i] = real_t(random())/RAND_MAX;
+                  ix[i] = int(100.0*x[i]);
+                  iy[i] = int(100.0*y[i]);
+                  if (iy[i] == 0)
+                        iy[i] = 1;
             }
             u = arch_traits_t::loada(x);
             v = arch_traits_t::loada(y);
+            iu = arch_traits_t::iload(ix);
+            iv = arch_traits_t::iload(iy);
       }
       
       void test_zero()
@@ -62,6 +75,14 @@ public:
                   TS_ASSERT_EQUALS(((real_t*)&z)[i], x[0]);
       }
 
+      void test_iset1()
+      {
+            TS_TRACE("test_iset1");
+            arch_traits_t::index_t iz = arch_traits_t::iset1(ix[0]);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], ix[0]);
+      }
+      
       void test_cvti()
       {
             TS_TRACE("test_cvti");
@@ -157,6 +178,54 @@ public:
                   TS_ASSERT_EQUALS(((real_t*)&z)[i], std::min(x[i], y[i]));
       }
 
+      void test_iadd()
+      {
+            TS_TRACE("test_iadd");
+            arch_traits_t::index_t iz = arch_traits_t::iadd(iu, iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], ix[i] + iy[i]);
+      }
+
+      void test_isub()
+      {
+            TS_TRACE("test_isub");
+            arch_traits_t::index_t iz = arch_traits_t::isub(iu, iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], ix[i] - iy[i]);
+      }
+      
+      void test_imul()
+      {
+            TS_TRACE("test_imul");
+            arch_traits_t::index_t iz = arch_traits_t::imul(iu, iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], ix[i]*iy[i]);
+      }
+      
+      void test_idiv()
+      {
+            TS_TRACE("test_idiv");
+            arch_traits_t::index_t iz = arch_traits_t::idiv(iu, iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], ix[i]/iy[i]);
+      }
+
+      void test_imax()
+      {
+            TS_TRACE("test_imax");
+            arch_traits_t::index_t iz = arch_traits_t::imax(ix[0], iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], std::max(ix[0], iy[i]));
+      }
+
+      void test_imin()
+      {
+            TS_TRACE("test_imin");
+            arch_traits_t::index_t iz = arch_traits_t::imin(ix[0], iv);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], std::min(ix[0], iy[i]));
+      }
+
       void test_exp()
       {
             TS_TRACE("test_exp");
@@ -193,6 +262,20 @@ public:
             arch_traits_t::packed_t z = arch_traits_t::gather(&src[0], idx);
             for (int i = 0; i < arch_traits_t::stride; ++i)
                   TS_ASSERT_EQUALS(((real_t*)&z)[i], src[((int*)(&idx))[i]]);
+      }
+
+      void test_igather()
+      {
+            TS_TRACE("test_igather");
+            std::vector<int> src(500, 0);
+            for (int i = 0; i < src.size(); ++i)
+                  src[i] = random();
+            arch_traits_t::index_t idx;
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  ((int*)&idx)[i] = int((arch_traits_t::stride + 1)*double(random())/RAND_MAX)%arch_traits_t::stride;
+            arch_traits_t::index_t iz = arch_traits_t::igather(&src[0], idx);
+            for (int i = 0; i < arch_traits_t::stride; ++i)
+                  TS_ASSERT_EQUALS(((int*)&iz)[i], src[((int*)(&idx))[i]]);
       }
 };
 
@@ -914,6 +997,8 @@ private:
       typedef std::vector<real_t>                   num_vector_t;
       typedef tachy::vector_engine<real_t> engine_t;
       typedef tachy::calc_vector<real_t, engine_t, 0U> vector_t;
+      typedef tachy::calc_cache<real_t, 2U> cache_t;
+      typedef tachy::calc_vector<real_t, engine_t, cache_t::cache_level> cached_vector_t;
       
       xy_vector_t pts;
       num_vector_t src;
@@ -1021,7 +1106,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline");
 
-            tachy::linear_spline_uniform_index<real_t> s("test", pts);
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1033,4 +1118,69 @@ public:
             }
       }
 
+      void test_unifrom_index_spline_vector()
+      {
+            TS_TRACE("test_uniform_index_spline_vector");
+            
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts);
+            
+            vector_t x("x", date, src);
+            vector_t r("r", date, tgt);
+
+            r = s(x);
+
+            for (int i = 0; i < r.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts.size(); ++k)
+                        y += pts[k].second*std::max<real_t>(0.0, src[i] - pts[k].first);
+                  const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                  std::ostringstream msg;
+                  msg << i << ", " << x[i] << ", " << src[i] << ", " << y << ", " << r[i];
+                  TSM_ASSERT_DELTA(msg.str().c_str(), y, r[i], delta);
+            }
+      }
+
+      void test_mod_uniform_index_spline()
+      {
+            TS_TRACE("test_mod_uniform_index_spline");
+
+            tachy::linear_spline_uniform_index<real_t, false> s0("base", pts);
+
+            cache_t cache("the_cache");
+
+            unsigned int n_mod = 100;
+            std::vector<cached_vector_t> modulation;
+            modulation.reserve(pts.size());
+            for (int i = 0; i < pts.size(); ++i)
+            {
+                  std::ostringstream id;
+                  id << "mod " << i + 1;
+                  modulation.push_back(cached_vector_t(id.str(), 20170320, n_mod, cache));
+                  real_t amp = real_t(random())/RAND_MAX;
+                  for (int t = 0; t < n_mod; ++t)
+                        modulation[i][t] = amp*exp(-real_t(t)/n_mod);
+            }
+
+            try
+            {
+                  tachy::mod_linear_spline_uniform_index<real_t, 2U> s(s0, modulation);
+
+                  for (int t = 0; t < n_mod; ++t)
+                  {
+                        for (int i = 0; i < src.size(); ++i)
+                        {
+                              real_t y = 0.0;
+                              for (int k = 0; k < pts.size(); ++k)
+                                    y += modulation[k][t]*pts[k].second*std::max<real_t>(0.0, src[i] - pts[k].first);
+                              const real_t delta = 20.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                              TS_ASSERT_DELTA(s(t, src[i]), y, delta);
+                        }
+                  }
+            }
+            catch (std::exception& ex)
+            {
+                  TSM_ASSERT(ex.what(), false);
+            }
+      }
 };

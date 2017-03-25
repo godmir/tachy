@@ -5,27 +5,7 @@ CXXFLAGS   = -I$(INCLUDE) #-std=c++11
 OPT        = -O3
 DEBUG      = -O0 -g
 
-HEADERS = $(INCLUDE)/tachy_aligned_allocator.h \
-	  $(INCLUDE)/tachy_arch_traits.h \
-	  $(INCLUDE)/tachy_cacheable.h \
-	  $(INCLUDE)/tachy_calc_cache.h \
-	  $(INCLUDE)/tachy_exception.h \
-	  $(INCLUDE)/tachy_expression.h \
-	  $(INCLUDE)/tachy_functor.h \
-	  $(INCLUDE)/tachy_iota_engine.h \
-	  $(INCLUDE)/tachy_lagged_engine.h \
-	  $(INCLUDE)/tachy_lagged_vector.h \
-	  $(INCLUDE)/tachy_linear_spline_incr_slope.h \
-	  $(INCLUDE)/tachy_linear_spline_uniform.h \
-	  $(INCLUDE)/tachy_linear_spline_uniform_index.h \
-	  $(INCLUDE)/tachy_random_engine.h \
-	  $(INCLUDE)/tachy_scalar.h \
-	  $(INCLUDE)/tachy_spline_util.h \
-	  $(INCLUDE)/tachy_static_functor_engine.h \
-	  $(INCLUDE)/tachy_time_shift.h \
-	  $(INCLUDE)/tachy_util.h \
-	  $(INCLUDE)/tachy_vector_engine.h \
-	  $(INCLUDE)/tachy_vector.h
+HEADERS = $(wildcard $(INCLUDE)/tachy_*.h) $(INCLUDE)/tachy.h
 
 TESTS = $(addprefix tachy_test_,base sse sse2 avx avx2 fma fmavx2)
 
@@ -93,7 +73,9 @@ test_suite.cpp: tachy.t.h
 test: $(TESTS)
 	./tachy_test_base && ./tachy_test_sse && ./tachy_test_sse2 && ./tachy_test_avx && ./tachy_test_avx2 && ./tachy_test_fma && ./tachy_test_fmavx2
 
-example: $(addprefix example_,base sse2 avx avx2 fma fmavx2)
+EXAMPLE=$(addprefix example_,base sse2 avx avx2 fma fmavx2)
+
+example: $(EXAMPLE)
 
 example_fmavx2: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mfma -mavx2 $<
@@ -111,9 +93,9 @@ example_sse2: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -msse2 $<
 
 example_base: example.cpp $(HEADERS)
-	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mno-sse2 $<
+	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mno-sse2 -mno-avx -mno-avx2 -mno-fma $<
 
 .PHONY: example
 
 clean:
-	rm -f $(TESTS) $(addsuffix .debug, $(TESTS)) test_suite.cpp $(addprefix example_,avx2 avx sse2 base fma fmavx2)
+	rm -f $(TESTS) $(addsuffix .debug, $(TESTS)) test_suite.cpp $(EXAMPLE)

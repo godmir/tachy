@@ -1,5 +1,5 @@
-#ifndef TACHY_SPLINE_UTIL_H
-#define TACHY_SPLINE_UTIL_H
+#if !defined(TACHY_SPLINE_UTIL_H__INCLUDED)
+#define TACHY_SPLINE_UTIL_H__INCLUDED
 
 #include <numeric>
 #include <limits>
@@ -23,6 +23,12 @@ namespace tachy
             {
                   void* p = aligned_malloc(sz*sizeof(T), arch_traits<NumType, tachy::ACTIVE_ARCH_TYPE>::align);
                   return new (p) T[sz];
+            }
+
+            static inline NumType* allocate(unsigned int sz)
+            {
+                  void* p = aligned_malloc(sz*sizeof(NumType), arch_traits<NumType, tachy::ACTIVE_ARCH_TYPE>::align);
+                  return new (p) NumType[sz];
             }
 
             template <typename T>
