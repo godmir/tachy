@@ -798,8 +798,8 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine.get_num_history() << "\n{ ";
-                  for (int i = -_engine.get_num_history(), i_last = _engine.size()-1; i < i_last; ++i)
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine.get_num_hist() << "\n{ ";
+                  for (int i = -_engine.get_num_hist(), i_last = _engine.size()-1; i < i_last; ++i)
                         to << _engine[i] << ", ";
                   if (_engine.size() > 0)
                         to << _engine.back();
@@ -809,7 +809,7 @@ namespace tachy
 
             void set_history(const std::vector<NumType>& from)
             {
-                  _engine.set_history(from);
+                  _engine.set_hist(from);
             }
 
       protected:

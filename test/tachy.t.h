@@ -551,7 +551,7 @@ public:
             TS_ASSERT_EQUALS(eng.get_num_hist(), offset);
             
             std::vector<real_t> hist(100, 20.0);
-            eng.set_history(hist);
+            eng.set_hist(hist);
             TS_ASSERT_EQUALS(eng.get_num_hist(), hist.size());
             for (int i = offset; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], eng[i-offset]);

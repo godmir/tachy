@@ -155,7 +155,7 @@ namespace tachy
 
             // note that while the "projection" section remains intact
             // "history" section is resized as necessary
-            void set_history(const std::vector<NumType>& from)
+            void set_hist(const std::vector<NumType>& from)
             {
                   if (false == from.empty())
                   {
@@ -167,7 +167,7 @@ namespace tachy
             }
 
       private:
-            storage_t     _data;
+            storage_t    _data;
             unsigned int _num_hist;
       };
 }

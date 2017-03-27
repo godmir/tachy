@@ -190,7 +190,7 @@ namespace tachy
       class calc_cache<NumType, 0>
       {
       public:
-            enum { CacheLevel = 0 };
+            enum { cache_level = 0 };
 
             calc_cache()
             {}

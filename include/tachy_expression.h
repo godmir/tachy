@@ -256,7 +256,7 @@ namespace tachy
       calc_vector<NumType, op_engine<NumType, typename data_engine_traits<Eng1>::cached_engine_t, OP_TYPE, typename data_engine_traits<Eng2>::cached_engine_t, take_min<Level1, Level2>::result>, take_min<Level1, Level2>::result> operator OP (const calc_vector<NumType, Eng1, Level1>& x, const calc_vector<NumType, Eng2, Level2>& y) \
       { \
             typedef calc_cache<NumType, take_min<Level1, Level2>::result> cache_t; \
-            typedef cache_chooser<(unsigned int)(cache_t::CacheLevel) == Level1, calc_cache<NumType, Level1>, calc_cache<NumType,Level2> > cache_chooser_t; \
+            typedef cache_chooser<(unsigned int)(cache_t::cache_level) == Level1, calc_cache<NumType, Level1>, calc_cache<NumType,Level2> > cache_chooser_t; \
             cache_t& cache = cache_chooser_t::choose(x.cache(), y.cache()); \
             typedef op_engine<NumType, typename data_engine_traits<Eng1>::cached_engine_t, OP_TYPE, typename data_engine_traits<Eng2>::cached_engine_t, take_min<Level1, Level2>::result> engine_t; \
             std::string id = cache.get_hash_key(x.get_id() + #OP + y.get_id()); \
