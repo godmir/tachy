@@ -720,6 +720,8 @@ namespace tachy
                   int i = 0;
                   for (int i_last = sz; i < i_last; i += arch_traits_t::stride)
                         get_packed(i) = other.get_packed(i);
+                  for (int i_last = sz; i < i_last; ++i)
+                        _engine[i] = other[i];
                   for (int i_last = _engine.size(); i < i_last; ++i)
                         _engine[i] = _engine[sz-1];
                   return *this;

@@ -80,7 +80,15 @@ public:
             TS_TRACE("test_iset1");
             arch_traits_t::index_t iz = arch_traits_t::iset1(ix[0]);
             for (int i = 0; i < arch_traits_t::stride; ++i)
+            {
+#if TACHY_SIMD_VERSION==6 // when compiled with "-mfma -O3" TS_ASSERT_EQUALS shows garbage for the first element of iz - unless iz is used other statements
+                  std::ostringstream msg;
+                  msg << i << ", " << ix[0] << ", " << ((int*)&iz)[i];
+                  TSM_ASSERT_EQUALS(msg.str(), ((int*)&iz)[i], ix[0]);
+#else
                   TS_ASSERT_EQUALS(((int*)&iz)[i], ix[0]);
+#endif
+            }
       }
       
       void test_cvti()

@@ -71,7 +71,13 @@ test_suite.cpp: tachy.t.h
 	$(CXXTESTGEN) --error-printer -o $@ $<
 
 test: $(TESTS)
-	./tachy_test_base && ./tachy_test_sse && ./tachy_test_sse2 && ./tachy_test_avx && ./tachy_test_avx2 && ./tachy_test_fma && ./tachy_test_fmavx2
+	-@echo base   && tachy_test_base
+	-@echo sse    && tachy_test_sse
+	-@echo sse2   && tachy_test_sse2
+	-@echo avx    && tachy_test_avx
+	-@echo avx2   && tachy_test_avx2
+	-@echo fma    && tachy_test_fma
+	-@echo fmavx2 && tachy_test_fmavx2
 
 EXAMPLE=$(addprefix example_,base sse2 avx avx2 fma fmavx2)
 
