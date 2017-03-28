@@ -14,18 +14,9 @@
 #include <mmintrin.h>  /* for indices */
 #endif
 
-#if defined(__AVX__)
+#if defined(__AVX__) || defined(__AVX2__) || defined(__AVX2__)
 #include <immintrin.h> /* AVX  __m256  float */
 #include <smmintrin.h> /* for indices */
-#endif
-
-#if defined(__AVX2__)
-#include <immintrin.h> /* AVX  __m256  float */
-#include <smmintrin.h> /* for indices */
-#endif
-
-#if defined(__FMA__)
-#include <fmaintrin.h>
 #endif
 
 #include <stdio.h>
@@ -102,6 +93,91 @@ namespace tachy
 #endif
       };
 
+      template <typename NumType>
+      struct math_traits
+      {
+            template <typename ExpType>
+            inline static NumType pow(NumType x, ExpType y)
+            {
+                  return std::pow(x, y);
+            }
+      };
+
+      template <>
+      struct math_traits<double>
+      {
+            typedef double real_t;
+            typedef float other_real_t;
+            
+            template <typename ExpType>
+            inline static real_t pow(real_t x, ExpType n)
+            {
+                  if (n == 0)
+                        return 1.0;
+
+                  if (n < 0)
+                        return 1.0/pow(x, -n);
+
+                  real_t r = 1.0;
+                  while (n)
+                  {
+                        if (n & 1)
+                              r *= x;
+                        n >>= 1;
+                        x *= x;
+                  }
+                  return r;
+            }
+
+            inline static real_t pow(real_t x, real_t y)
+            {
+                  return std::pow(x, y);
+            }
+
+            inline static real_t pow(real_t x, other_real_t y)
+            {
+                  return std::pow(x, y);
+            }
+      };
+
+      template <>
+      struct math_traits<float>
+      {
+            typedef float real_t;
+            typedef double other_real_t;
+            
+            template <typename ExpType>
+            inline static real_t pow(real_t x, ExpType n)
+            {
+                  if (n == 0)
+                        return 1.0;
+
+                  if (n < 0)
+                        return 1.0/pow(x, -n);
+
+                  real_t r = 1.0;
+                  while (n)
+                  {
+                        if (n & 1)
+                              r *= x;
+                        n >>= 1;
+                        x *= x;
+                  }
+                  return r;
+            }
+
+            inline static real_t pow(real_t x, real_t y)
+            {
+                  return std::pow(x, y);
+            }
+
+            inline static real_t pow(real_t x, other_real_t y)
+            {
+                  return std::pow(x, y);
+            }
+      };
+
+      
       template <typename NumType, unsigned int ArchType> struct arch_traits
       {
             typedef NumType scalar_t;

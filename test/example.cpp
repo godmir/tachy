@@ -85,16 +85,16 @@ private:
             if (invert)
             {
                   for (int i = 0; i < iMax; ++i, ++p)
-                        *p = (1.0 - 1.0/pow(1.0 + c, term-i))/c;
+                        *p = (1.0 - 1.0/tachy::math_traits<real_t>::pow(1.0 + c, term-i))/c;
             }
             else
             {
                   for (int i = 0; i < iMax; ++i, ++p)
-                        *p = c/(1.0 - 1.0/pow(1.0 + c, term-i));
+                        *p = c/(1.0 - 1.0/tachy::math_traits<real_t>::pow(1.0 + c, term-i));
             }
             if (_minTerm > 0)
             {
-                  real_t x = c/(1.0 - 1.0/pow(1.0 + c, _minTerm));
+                  real_t x = c/(1.0 - 1.0/tachy::math_traits<real_t>::pow(1.0 + c, _minTerm));
                   fill_n(p, std::min(term, _minTerm), invert ? 1.0/x : x);
             }
       }
@@ -139,20 +139,51 @@ public:
             for (int i = 0; i < iMax0; ++i, ++ip)
             {
                   real_t ri = rates[i]/1200.0;
-                  *ip = (1.0 - 1.0/pow(1.0 + ri, term-i))/ri;
+                  *ip = (1.0 - 1.0/tachy::math_traits<real_t>::pow(1.0 + ri, term-i))/ri;
             }
             if (iMax0 == iMaxRates)
                   calcPmtsConstRate(rates[iMaxRates-1], ip, invPmts.engine().end(), true);
             else if (iMax0 > 0)
             {
                   int iMax1 = std::min<int>(rates.size(), term);
+                  const real_t c = 1.0/1200.0;
                   for (int i = iMax0; i < iMax1; ++i, ++ip)
                   {
-                        real_t ri = rates[i]/1200.0;
-                        *ip = (1.0 - 1.0/pow(1.0 + ri, _minTerm))/ri;
+                        real_t ri = c*rates[i];
+                        *ip = (1.0 - tachy::math_traits<real_t>::pow(1.0 + ri, -_minTerm))/ri;
                   }
                   if (iMax1 == iMaxRates)
                         calcPmtsConstRate(rates[iMaxRates-1], ip, invPmts.engine().end(), true);
+            }
+      }
+
+      template <class RatesEngine>
+      void calcPmts(tachy::calc_vector<real_t, tachy::vector_engine<real_t>, 0>& pmts,
+                    const tachy::calc_vector<real_t, RatesEngine, 0>& rates) const
+      {
+            int term = pmts.size();
+            int iMaxRates = rates.size();
+            typename tachy::vector_engine<real_t>::storage_t::iterator ip = pmts.engine().begin();
+            int iMax0 = std::min<int>(iMaxRates, std::max<int>(0, term - _minTerm));
+            const real_t c = 1.0/1200.0;
+            for (int i = 0; i < iMax0; ++i, ++ip)
+            {
+                  real_t ri = c*rates[i];
+                  *ip = ri/(1.0 - tachy::math_traits<real_t>::pow(1.0 + ri, i-term));
+            }
+            if (iMax0 == iMaxRates)
+                  calcPmtsConstRate(rates[iMaxRates-1], ip, pmts.engine().end(), false);
+            else if (iMax0 > 0)
+            {
+                  int iMax1 = std::min<int>(rates.size(), term);
+                  const real_t c = 1.0/1200.0;
+                  for (int i = iMax0; i < iMax1; ++i, ++ip)
+                  {
+                        real_t ri = c*rates[i];
+                        *ip = ri/(1.0 - tachy::math_traits<real_t>::pow(1.0 + ri, -_minTerm));
+                  }
+                  if (iMax1 == iMaxRates)
+                        calcPmtsConstRate(rates[iMaxRates-1], ip, pmts.engine().end(), false);
             }
       }
 };
