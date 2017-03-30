@@ -1,5 +1,5 @@
 #if !defined(TACHY_IOTA_ENGINE_H__INCLUDED)
-#define TACHY_IOTA_ENGINE_H__INCLDUED
+#define TACHY_IOTA_ENGINE_H__INCLUDED
 
 #include "tachy_arch_traits.h"
 
