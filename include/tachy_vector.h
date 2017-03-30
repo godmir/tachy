@@ -84,7 +84,7 @@ namespace tachy
                   _anchor_date = other.get_start_date();
                   _engine.resize(other.size(), NumType());
                   for ( int i = 0, i_last = _engine.size(); i < i_last; ++i )
-                        engine[i] = other[i];
+                        _engine[i] = other[i];
 
                   return *this;
             }
@@ -446,7 +446,7 @@ namespace tachy
             void debug_print(std::ostream& to) const
             {
                   to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << _anchor_date << ", num hist = " << _engine->getFirst() << "\n";
-                  for (int i = -engine->get_first(), i_last = _engine->size(); i < i_last; ++i)
+                  for (int i = _engine->get_first(), i_last = _engine->size(); i < i_last; ++i)
                         to << (*_engine)[i] << "\n";
                   to.flush();
             }
