@@ -92,11 +92,10 @@ namespace tachy
                         deltas.insert((unsigned int)((nodes[i].first - nodes[i-1].first)/k_eps + 0.5));
 
                   bool uniform = deltas.size() == 1;
-                  NumType d0 = 0.0;
+                  NumType d0 = *deltas.begin();
                   if (!uniform)
                   {
                         std::set<unsigned int>::const_iterator i = deltas.begin();
-                        d0 = *i;
                         for (++i; i != deltas.end(); ++i)
                               d0 = spline_util<NumType>::gcd(d0, *i);
                         if (d0 > 0)

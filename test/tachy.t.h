@@ -1009,6 +1009,7 @@ private:
       typedef tachy::calc_vector<real_t, engine_t, cache_t::cache_level> cached_vector_t;
       
       xy_vector_t pts;
+      xy_vector_t pts_uniform;
       num_vector_t src;
       num_vector_t tgt;
       unsigned int date;
@@ -1028,6 +1029,12 @@ public:
             pts[5] = xy_pair_t(0.6, -0.05);
             pts[6] = xy_pair_t(0.75, -0.08);
             pts[7] = xy_pair_t(0.85, -0.02);
+
+            pts_uniform.resize(4, xy_pair_t(0.0, 0.0));
+            pts_uniform[0] = xy_pair_t(0.0, 0.02);
+            pts_uniform[1] = xy_pair_t(0.2, 0.05);
+            pts_uniform[2] = xy_pair_t(0.4, 0.08);
+            pts_uniform[3] = xy_pair_t(0.6, 0.02);
 
             tgt.resize(500, 0.0);
             src = tgt;
@@ -1087,6 +1094,22 @@ public:
             }
       }
 
+      void test_uniform_spline_2()
+      {
+            TS_TRACE("test_uniform_spline_2");
+      
+            tachy::linear_spline_uniform<real_t> s("testu", pts_uniform);
+            
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts_uniform.size(); ++k)
+                        y += pts_uniform[k].second*std::max<real_t>(0.0, src[i] - pts_uniform[k].first);
+                  const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(s(src[i]), y, delta);
+            }
+      }
+
       void test_uniform_spline_vector()
       {
             TS_TRACE("test_uniform_spline_vector");
@@ -1126,6 +1149,22 @@ public:
             }
       }
 
+      void test_uniform_index_spline_2()
+      {
+            TS_TRACE("test_uniform_index_spline_2");
+
+            tachy::linear_spline_uniform_index<real_t, false> s("testu", pts_uniform);
+            
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts_uniform.size(); ++k)
+                        y += pts_uniform[k].second*std::max<real_t>(0.0, src[i] - pts_uniform[k].first);
+                  const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(s(src[i]), y, delta);
+            }
+      }
+
       void test_unifrom_index_spline_vector()
       {
             TS_TRACE("test_uniform_index_spline_vector");
@@ -1142,6 +1181,29 @@ public:
                   real_t y = 0.0;
                   for (int k = 0; k < pts.size(); ++k)
                         y += pts[k].second*std::max<real_t>(0.0, src[i] - pts[k].first);
+                  const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                  std::ostringstream msg;
+                  msg << i << ", " << x[i] << ", " << src[i] << ", " << y << ", " << r[i];
+                  TSM_ASSERT_DELTA(msg.str().c_str(), y, r[i], delta);
+            }
+      }
+
+      void test_unifrom_index_spline_vector_2()
+      {
+            TS_TRACE("test_uniform_index_spline_vector_2");
+            
+            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform);
+            
+            vector_t x("x", date, src);
+            vector_t r("r", date, tgt);
+
+            r = s(x);
+
+            for (int i = 0; i < r.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts_uniform.size(); ++k)
+                        y += pts_uniform[k].second*std::max<real_t>(0.0, src[i] - pts_uniform[k].first);
                   const real_t delta = 10.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
                   std::ostringstream msg;
                   msg << i << ", " << x[i] << ", " << src[i] << ", " << y << ", " << r[i];
