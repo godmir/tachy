@@ -321,9 +321,9 @@ namespace tachy
             }
 
             explicit min_functor(NumType upper_bound)
-            : _key("MIN_"),
-              _upper_bound(upper_bound),
-              _upper_packed(arch_traits_t::set1(upper_bound))
+                  : _key("MIN_"),
+                    _upper_bound(upper_bound),
+                    _upper_packed(arch_traits_t::set1(upper_bound))
             {}
 
             const std::string& get_id() const
@@ -354,9 +354,9 @@ namespace tachy
             }
 
             explicit max_functor(NumType lower_bound)
-            : _key("MAX_"),
-              _lower_bound(lower_bound),
-              _lower_packed(arch_traits_t::set1(lower_bound))
+                  : _key("MAX_"),
+                    _lower_bound(lower_bound),
+                    _lower_packed(arch_traits_t::set1(lower_bound))
             {}
 
             const std::string& get_id() const
@@ -386,12 +386,12 @@ namespace tachy
                   return std::max<NumType>(_lower, std::min<NumType>(x, _upper));
             }
 
-            min_max_functor(NumType lower, NumType upper)
-            : _key("MINMAX_"),
-              _lower(lower),
-              _upper(upper),
-              _lower_packed(arch_traits_t::set1(lower)),
-              _upper_packed(arch_traits_t::set1(upper))
+            min_max_functor(NumType lower, NumType upper) :
+                  : _key("MINMAX_"),
+                    _lower(lower),
+                    _upper(upper),
+                    _lower_packed(arch_traits_t::set1(lower)),
+                    _upper_packed(arch_traits_t::set1(upper))
             {}
 
             const std::string& get_id() const
@@ -430,7 +430,7 @@ namespace tachy
             typedef functor_engine<NumType, Engine, FUNC_TYPE, 0> engine_t; \
             FUNC_TYPE bf(param); \
             std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key(); \
-            engine_t eng(hashed_id, x.engine(), bf, x.cache()); \
+            engine_t eng(x.engine(), bf); \
             return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache()); \
       } \
       \
@@ -460,7 +460,7 @@ namespace tachy
             typedef functor_engine<NumType, Engine, min_max_functor<NumType>, 0> engine_t;
             min_max_functor<NumType> mmf(lower, upper);
             std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key();
-            engine_t eng(hashed_id, x.engine(), mmf, x.cache());
+            engine_t eng(x.engine(), mmf);
             return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
       }
 }

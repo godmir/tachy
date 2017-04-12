@@ -267,7 +267,7 @@ namespace tachy
             {
                   typedef functor_engine<NumType, ArgEngine, spline_t, Level> engine_t;
                   std::string id = base_t::_key + x.get_id();
-                  return calc_vector<NumType, engine_t, Level>(id, x.get_start_date(), engine_t(x.engine(), *this), x.cache());
+                  return calc_vector<NumType, engine_t, Level>(id, x.get_start_date(), engine_t(id, x.engine(), *this, x.cache()), x.cache());
             }
 
             template <class ArgEngine>
