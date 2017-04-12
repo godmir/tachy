@@ -1,7 +1,7 @@
 CXXTESTGEN = cxxtestgen
 CXX        = g++
 INCLUDE    = ../include
-CXXFLAGS   = -I$(INCLUDE) #-std=c++11
+CXXFLAGS   = -I$(INCLUDE) -std=c++11 #-fprofile-generate -fprofile-arcs -ftest-coverage -Ofast
 OPT        = -O3
 DEBUG      = -O0 -g
 
@@ -101,7 +101,7 @@ example_sse2: example.cpp $(HEADERS)
 example_base: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mno-sse2 -mno-avx -mno-avx2 -mno-fma $<
 
-.PHONY: example
+.PHONY: example $(addprefix test_,base sse sse2 avx avx2 fma fmavx2)
 
 clean:
 	rm -f $(TESTS) $(addsuffix .debug, $(TESTS)) test_suite.cpp $(EXAMPLE)

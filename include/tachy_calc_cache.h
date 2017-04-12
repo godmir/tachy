@@ -165,6 +165,11 @@ namespace tachy
                   return _id;
             }
 
+            void set_id(const std::string& id)
+            {
+                  _id = id;
+            }
+
       private:
             std::string  _id;
             cache_engine_t _cache;
