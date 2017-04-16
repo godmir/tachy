@@ -107,7 +107,11 @@ namespace tachy
       public:
             linear_spline_uniform_index_base() :
                   _key("DUMMY LSui"),
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),
@@ -117,7 +121,11 @@ namespace tachy
             
             linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
                   _key("LSui_" + name),
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),
@@ -176,7 +184,11 @@ namespace tachy
             }
 
             linear_spline_uniform_index_base(const linear_spline_uniform_index_base& other) :
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),

@@ -76,12 +76,18 @@ namespace tachy
 
             linear_spline_uniform() :
                   _key("DUMMY LSu"),
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {}
             
             linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
                   _key("LSu_" + name),
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {
@@ -137,6 +143,9 @@ namespace tachy
             }
 
             linear_spline_uniform(const linear_spline_uniform& other) :
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {
