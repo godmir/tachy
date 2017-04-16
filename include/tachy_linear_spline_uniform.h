@@ -59,16 +59,19 @@ namespace tachy
                   assert(_a == 0 && _b == 0);
                   _key = key;
                   _size = size;
-                  _a = spline_util<NumType>::template allocate<NumType>(size);
-                  _b = spline_util<NumType>::template allocate<NumType>(size);
-                  _dx = dx;
-                  _x0 = x0;
-                  for (int i = 0; i < _size; ++i)
+                  if (_size > 0)
                   {
-                        _a[i] = a[i];
-                        _b[i] = b[i];
+                        _a = spline_util<NumType>::template allocate<NumType>(size);
+                        _b = spline_util<NumType>::template allocate<NumType>(size);
+                        _dx = dx;
+                        _x0 = x0;
+                        for (int i = 0; i < _size; ++i)
+                        {
+                              _a[i] = a[i];
+                              _b[i] = b[i];
+                        }
+                        set_packed();
                   }
-                  set_packed();
             }
 
       public:
