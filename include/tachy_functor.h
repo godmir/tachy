@@ -70,48 +70,75 @@ namespace tachy
                 class FunctorObjPolicy = functor_obj_policy_copy<Functor> >
       class functor_engine
       {
+      private:
+            typedef vector_engine<NumType> data_engine_t;
+            typedef calc_cache<NumType, Level> cache_t;
+            
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
             
             functor_engine(const std::string& key, const Arg& arg, const Functor& fct, calc_cache<NumType, Level>& cache) :
-                  _res(cache[key])
+                  _cache(cache),
+                  _id(key),
+                  _engine(nullptr),
+                  _own_engine(true)
             {
-                  if (_res.empty())
+                  const auto k = _cache.find(key);
+                  if (k == _cache.end())
                   {
                         TACHY_LOG("Cache " << cache.get_id() << ": calculating for " << key);
                         unsigned int sz = arg.size();
-                        _res.resize(sz, NumType(0));
+                        _engine = new data_engine_t(sz, NumType(0));
                         for (int i = 0; i < sz; ++i)
-                              _res[i] = FcnCallPolicy::call(i, arg, fct);
+                              (*_engine)[i] = FcnCallPolicy::call(i, arg, fct);
                   }
                   else
+                  {
                         TACHY_LOG("Cache " << cache.get_id() << ": using cached result for " << key);
+                        _engine = dynamic_cast<data_engine_t*>(k->second);
+                        _own_engine = false;
+                  }
             }
 
             functor_engine(const functor_engine& other) :
-                  _res(other._res)
+                  _cache(other._cache),
+                  _id(other._id),
+                  _engine(other._engine),
+                  _own_engine(other._engine ? false : true)
             {}
 
             ~functor_engine()
-            {}
+            {
+                  if (_own_engine)
+                  {
+                        auto k = _cache.find(_id);
+                        if (k == _cache.end())
+                              _cache[_id] = _engine;
+                        else
+                              delete _engine;
+                  }
+            }
 
             NumType operator[] (const unsigned int idx) const
             {
-                  return _res[idx];
+                  return (*_engine)[idx];
             }
 
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return arch_traits_t::load(_res[idx]);
+                  return arch_traits_t::loadu(&(*_engine)[idx]);
             }
 
             unsigned int size() const
             {
-                  return _res.size();
+                  return _engine->size();
             }
 
       protected:
-            std::vector<NumType>& _res;
+            cache_t& _cache;
+            std::string _id;
+            data_engine_t* _engine;
+            bool _own_engine;
 
             functor_engine& operator= (const functor_engine& other)
             {
@@ -247,9 +274,6 @@ namespace tachy
       template <typename NumType>
       class exp_functor
       {
-      private:
-            const std::string _key;
-
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
 
@@ -275,21 +299,20 @@ namespace tachy
             exp_functor()
                   : _key("EXP")
             {}
+
+      private:
+            const std::string _key;
       };
 
       template <typename NumType>
       class min_functor
       {
-      private:
-            const std::string _key;
-            NumType _upper_bound;
-
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
-
+            
             inline typename arch_traits_t::packed_t apply_packed(const typename arch_traits_t::packed_t& x) const
             {
-                  return arch_traits_t::min(_upper_bound, x);
+                  return arch_traits_t::min(_upper_packed, x);
             }
 
             inline NumType operator()(NumType x) const
@@ -297,81 +320,32 @@ namespace tachy
                   return std::min<NumType>(_upper_bound, x);
             }
 
-            template <class Engine, unsigned int Level>
-            static calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, Level>, Level> apply(NumType upper, const calc_vector<NumType, Engine, Level>& x)
-            {
-                  typedef functor_engine<NumType, Engine, min_functor<NumType>, Level> engine_t;
-                  min_functor mf(upper);
-                  std::string hashed_id = x.cache().get_hash_key(mf._key + scalar<NumType>::get_id(upper) + std::string("_") + x.get_id());
-                  engine_t eng(hashed_id, x.engine(), mf, x.cache());
-                  return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            template <class Engine, unsigned int Level>
-            static calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, Level>, Level> apply(const calc_vector<NumType, Engine, Level>& x, NumType upper)
-            {
-                  return apply(upper, x);
-            }
-
-            template <class Engine>
-            static calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, 0>, 0> apply(NumType upper, const calc_vector<NumType, Engine, 0>& x)
-            {
-                  typedef functor_engine<NumType, Engine, min_functor<NumType>, 0> engine_t;
-                  min_functor mf(upper);
-                  engine_t eng(x.engine(), mf);
-                  std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key();
-                  return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            template <class Engine>
-            static calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, 0>, 0> apply(const calc_vector<NumType, Engine, 0>& x, NumType upper)
-            {
-                  return apply(upper, x);
-            }
-
-            template <class Engine, unsigned int Level>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, Level>, Level> operator()(NumType upper, const calc_vector<NumType, Engine, Level>& x) const
-            {
-                  return min_functor::apply(upper, x);
-            }
-
-            template <class Engine, unsigned int Level>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, Level>, Level> operator()(const calc_vector<NumType, Engine, Level>& x, NumType upper) const
-            {
-                  return min_functor::apply(upper, x);
-            }
-
-            template <class Engine>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, 0>, 0> operator()(NumType upper, const calc_vector<NumType, Engine, 0>& x) const
-            {
-                  return min_functor::apply(upper, x);
-            }
-
-            template <class Engine>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_functor<NumType>, 0>, 0> operator()(const calc_vector<NumType, Engine, 0>& x, NumType upper) const
-            {
-                  return min_functor::apply(upper, x);
-            }
-
             explicit min_functor(NumType upper_bound)
-            : _key("MIN_"),
-              _upper_bound(upper_bound)
+                  : _key("MIN_"),
+                    _upper_bound(upper_bound),
+                    _upper_packed(arch_traits_t::set1(upper_bound))
             {}
+
+            const std::string& get_id() const
+            {
+                  return _key;
+            }
+
+      private:
+            const std::string _key;
+            const NumType _upper_bound;
+            const typename arch_traits_t::packed_t _upper_packed;
       };
       
       template <typename NumType>
       class max_functor
       {
-      private:
-            const std::string _key;
-            const NumType _lower_bound;
-
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
 
             inline typename arch_traits_t::packed_t apply_packed(const typename arch_traits_t::packed_t& x) const
             {
-                  return arch_traits_t::max(_lower_bound, x);
+                  return arch_traits_t::max(_lower_packed, x);
             }
 
             inline NumType operator()(NumType x) const
@@ -379,83 +353,116 @@ namespace tachy
                   return std::max<NumType>(_lower_bound, x);
             }
 
-            template <class Engine, unsigned int Level>
-            calc_vector<NumType, functor_engine<NumType, Engine, max_functor<NumType>, Level>, Level> operator()(NumType lower, const calc_vector<NumType, Engine, Level>& x) const
-            {
-                  typedef functor_engine<NumType, Engine, max_functor<NumType>, Level> engine_t;
-                  max_functor mf(lower);
-                  std::string hashed_id = x.cache().get_hash_key(mf._key + scalar<NumType>::get_id(lower) + std::string("_") + x.get_id());
-                  engine_t eng(hashed_id, x.engine(), mf, x.cache());
-                  return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            template <class Engine, unsigned int Level>
-            calc_vector<NumType, functor_engine<NumType, Engine, max_functor<NumType>, Level>, Level> operator()(const calc_vector<NumType, Engine, Level>& x, NumType lower) const
-            {
-                  return operator()(lower, x);
-            }
-
-            template <class Engine>
-            calc_vector<NumType, functor_engine<NumType, Engine, max_functor<NumType>, 0>, 0> operator()(NumType lower, const calc_vector<NumType, Engine, 0>& x) const
-            {
-                  typedef functor_engine<NumType, Engine, max_functor<NumType>, 0> engine_t;
-                  max_functor mf(lower);
-                  engine_t eng(x.engine(), mf);
-                  std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key();
-                  return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            template <class Engine>
-            calc_vector<NumType, functor_engine<NumType, Engine, max_functor<NumType>, 0>, 0> operator()(const calc_vector<NumType, Engine, 0>& x, NumType lower) const
-            {
-                  return operator()(lower, x);
-            }
-
             explicit max_functor(NumType lower_bound)
-            : _key("MAX_"),
-              _lower_bound(lower_bound)
+                  : _key("MAX_"),
+                    _lower_bound(lower_bound),
+                    _lower_packed(arch_traits_t::set1(lower_bound))
             {}
+
+            const std::string& get_id() const
+            {
+                  return _key;
+            }
+
+      private:
+            const std::string _key;
+            const NumType _lower_bound;
+            const typename arch_traits_t::packed_t _lower_packed;
       };
       
       template <typename NumType>
       class min_max_functor
       {
-      private:
-            const std::string _key;
-            const NumType _lower;
-            const NumType _upper;
-
       public:
+            typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
+
+            inline typename arch_traits_t::packed_t apply_packed(const typename arch_traits_t::packed_t& x) const
+            {
+                  return arch_traits_t::max(_lower_packed, arch_traits_t::min(x, _upper_packed));
+            }
+            
             inline NumType operator()(NumType x) const
             {
                   return std::max<NumType>(_lower, std::min<NumType>(x, _upper));
             }
 
-            template <class Engine, unsigned int Level>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_max_functor<NumType>, Level>, Level> operator()(NumType lower, const calc_vector<NumType, Engine, Level>& x, NumType upper) const
-            {
-                  typedef functor_engine<NumType, Engine, min_max_functor<NumType>, Level> engine_t;
-                  min_max_functor mmf(lower, upper);
-                  std::string hashed_id = x.cache().get_hash_key(mmf._key + scalar<NumType>::get_id(lower) + std::string("_") + x.get_id() + std::string("_") + scalar<NumType>::get_id(upper));
-                  engine_t eng(hashed_id, x.engine(), mmf, x.cache());
-                  return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            template <class Engine>
-            calc_vector<NumType, functor_engine<NumType, Engine, min_max_functor<NumType>, 0>, 0> operator()(NumType lower, const calc_vector<NumType, Engine, 0>& x, NumType upper) const
-            {
-                  typedef functor_engine<NumType, Engine, min_max_functor<NumType>, 0> engine_t;
-                  engine_t eng(x.engine(), min_max_functor(lower, upper));
-                  std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key();
-                  return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
-            }
-
-            min_max_functor(NumType lower, NumType upper)
-            : _key("MINMAX_"),
-              _lower(lower),
-              _upper(upper)
+            min_max_functor(NumType lower, NumType upper) :
+                  : _key("MINMAX_"),
+                    _lower(lower),
+                    _upper(upper),
+                    _lower_packed(arch_traits_t::set1(lower)),
+                    _upper_packed(arch_traits_t::set1(upper))
             {}
+
+            const std::string& get_id() const
+            {
+                  return _key;
+            }
+
+      private:
+            const std::string _key;
+            const NumType _lower;
+            const NumType _upper;
+            const typename arch_traits_t::packed_t _lower_packed;
+            const typename arch_traits_t::packed_t _upper_packed;
       };
+
+#define TACHY_BINARY_FUNCTOR_PACK(FUNC_TYPE, FUNC_NAME) \
+      template <typename NumType, class Engine, unsigned int Level> \
+      calc_vector<NumType, functor_engine<NumType, Engine, FUNC_TYPE, Level>, Level> FUNC_NAME (NumType param, const calc_vector<NumType, Engine, Level>& x) \
+      { \
+            typedef functor_engine<NumType, Engine, FUNC_TYPE, Level> engine_t; \
+            FUNC_TYPE bf(param); \
+            std::string hashed_id = x.cache().get_hash_key(bf.get_id() + scalar<NumType>::get_id(param) + std::string("_") + x.get_id()); \
+            engine_t eng(hashed_id, x.engine(), bf, x.cache()); \
+            return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache()); \
+      } \
+      \
+      template <typename NumType, class Engine, unsigned int Level> \
+      calc_vector<NumType, functor_engine<NumType, Engine, FUNC_TYPE, Level>, Level> FUNC_NAME (const calc_vector<NumType, Engine, Level>& x, NumType param) \
+      { \
+            return FUNC_NAME(param, x); \
+      } \
+      \
+      template <typename NumType, class Engine> \
+      calc_vector<NumType, functor_engine<NumType, Engine, FUNC_TYPE, 0>, 0> FUNC_NAME (NumType param, const calc_vector<NumType, Engine, 0>& x) \
+      { \
+            typedef functor_engine<NumType, Engine, FUNC_TYPE, 0> engine_t; \
+            FUNC_TYPE bf(param); \
+            std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key(); \
+            engine_t eng(x.engine(), bf); \
+            return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache()); \
+      } \
+      \
+      template <typename NumType, class Engine> \
+      calc_vector<NumType, functor_engine<NumType, Engine, FUNC_TYPE, 0>, 0> FUNC_NAME (const calc_vector<NumType, Engine, 0>& x, NumType param) \
+      { \
+            return FUNC_NAME(param, x); \
+      }
+// end #define TACHY_BINARY_FUNCTOR_PACK(FUNC_TYPE, FUNC_NAME)
+
+      TACHY_BINARY_FUNCTOR_PACK(min_functor<NumType>, min)
+      TACHY_BINARY_FUNCTOR_PACK(max_functor<NumType>, max)
+
+      template <typename NumType, class Engine, unsigned int Level>
+      calc_vector<NumType, functor_engine<NumType, Engine, min_max_functor<NumType>, Level>, Level> min_max(NumType lower, const calc_vector<NumType, Engine, Level>& x, NumType upper)
+      {
+            typedef functor_engine<NumType, Engine, min_max_functor<NumType>, Level> engine_t;
+            min_max_functor<NumType> mmf(lower, upper);
+            std::string hashed_id = x.cache().get_hash_key(mmf.get_id() + scalar<NumType>::get_id(lower) + std::string("_") + scalar<NumType>::get_id(upper) + std::string("_") + x.get_id());
+            engine_t eng(hashed_id, x.engine(), mmf, x.cache());
+            return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
+      }
+
+      template <typename NumType, class Engine>
+      calc_vector<NumType, functor_engine<NumType, Engine, min_max_functor<NumType>, 0>, 0> min_max(NumType lower, const calc_vector<NumType, Engine, 0>& x, NumType upper)
+      {
+            typedef functor_engine<NumType, Engine, min_max_functor<NumType>, 0> engine_t;
+            min_max_functor<NumType> mmf(lower, upper);
+            std::string hashed_id = calc_cache<NumType, 0>::get_dummy_key();
+            engine_t eng(x.engine(), mmf);
+            return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
+      }
 }
 
 #endif // TACHY_FUNCTOR_H__INCLUDED

@@ -153,6 +153,12 @@ namespace tachy
                   return _num_hist;
             }
 
+            // TODO: need a less crude way to set history size
+            void set_num_hist(unsigned int num_hist)
+            {
+                  _num_hist = num_hist;
+            }
+            
             // note that while the "projection" section remains intact
             // "history" section is resized as necessary
             void set_hist(const std::vector<NumType>& from)

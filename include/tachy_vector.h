@@ -112,6 +112,14 @@ namespace tachy
                   return _engine[idx];
             }
 
+            const calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level> operator[](const time_shift& shift) const
+            {
+                  typedef lagged_engine<NumType, data_engine_t, true> engine_t;
+                  std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
+                  engine_t eng(_engine, shift.get_time_shift());
+                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
+            }
+            
             const std::string& get_id() const
             {
                   return _id;
@@ -318,7 +326,7 @@ namespace tachy
             {
                   TACHY_LOG("calc_vector (L>0): V assigning: " << _id << " = " << other.get_id());
 
-                  typename cache_t::cache_t::const_iterator k = _cache.find(_id);
+                  auto k = _cache.find(_id);
                   if (k != _cache.end())
                   {
                         TACHY_THROW("calc_vector: trying to assign to a pre-cached object (" << _id << ")");
@@ -395,6 +403,14 @@ namespace tachy
                   return (*_engine)[idx];
             }
 
+            const calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level> operator[](const time_shift& shift) const
+            {
+                  typedef lagged_engine<NumType, data_engine_t, true> engine_t;
+                  std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
+                  engine_t eng(*_engine, shift.get_time_shift());
+                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
+            }
+            
             const std::string& get_id() const
             {
                   return _id;

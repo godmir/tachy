@@ -24,13 +24,13 @@ namespace tachy
                   {
                         _res = new vector_engine<NumType>(op.size(), NumType(0));
                         cache[key] = _res;
-                        TACHY_LOG("Cache " << cache.getId() << ": calculating for " << key);
+                        TACHY_LOG("Cache " << cache.get_id() << ": calculating for " << key);
                         func_t::apply(*_res, op);
                   }
                   else if (0 == _res->size())
                         throw tachy::exception("empty cache vector found for key " + key, __LINE__, __FILE__);
                   else
-                        TACHY_LOG("Cache " << cache.getId() << ": using cached result for " << key);
+                        TACHY_LOG("Cache " << cache.get_id() << ": using cached result for " << key);
             }
 
             static_functor_engine(const static_functor_engine& other) :
@@ -119,7 +119,7 @@ namespace tachy
                   _cache(cache),
                   _cached_vector(0)
             {
-                  TACHY_LOG("Delayed Cache " << cache.getId() << " for " << key);
+                  TACHY_LOG("Delayed Cache " << cache.get_id() << " for " << key);
             }
 
             static_functor_engine_delayed_cache(const static_functor_engine_delayed_cache& other) :
@@ -194,7 +194,7 @@ namespace tachy
             {
                   unsigned int sz = y.size();
                   for (unsigned int i = 0; i < sz; ++i)
-                        y[i] = exp(x[i]);
+                        y[i] = std::exp(x[i]);
             }
 
             static inline packed_t apply_packed(const packed_t& x)
@@ -204,7 +204,7 @@ namespace tachy
 
             static inline NumType apply(NumType x)
             {
-                  return exp(x);
+                  return std::exp(x);
             }
       };
 
