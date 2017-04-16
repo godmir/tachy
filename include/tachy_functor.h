@@ -387,11 +387,11 @@ namespace tachy
             }
 
             min_max_functor(NumType lower, NumType upper) :
-                  : _key("MINMAX_"),
-                    _lower(lower),
-                    _upper(upper),
-                    _lower_packed(arch_traits_t::set1(lower)),
-                    _upper_packed(arch_traits_t::set1(upper))
+                  _key("MINMAX_"),
+                  _lower(lower),
+                  _upper(upper),
+                  _lower_packed(arch_traits_t::set1(lower)),
+                  _upper_packed(arch_traits_t::set1(upper))
             {}
 
             const std::string& get_id() const
