@@ -75,10 +75,13 @@ namespace tachy
                   _size = other._size;
                   _idx_size = other._idx_size;
                   _num_slices = other._num_slices;
-                  _idx = spline_util<NumType>::template allocate<unsigned int>(_idx_size);
+                  if (_idx_size > 0)
+                  {
+                        _idx = spline_util<NumType>::template allocate<unsigned int>(_idx_size);
+                        memcpy(_idx, other._idx, _idx_size*sizeof(_idx[0]));
+                  }
                   _dx = other._dx;
                   _x0 = other._x0;
-                  memcpy(_idx, other._idx, _idx_size*sizeof(_idx[0]));
                   set_packed();
             }
             
@@ -86,10 +89,13 @@ namespace tachy
             {
                   assert(_a == 0 && _b == 0);
                   static_copy(other._key, other);
-                  _a = spline_util<NumType>::allocate(_size);
-                  _b = spline_util<NumType>::allocate(_size);
-                  memcpy(_a, other._a, _size*sizeof(NumType));
-                  memcpy(_b, other._b, _size*sizeof(NumType));
+                  if (_size > 0)
+                  {
+                        _a = spline_util<NumType>::allocate(_size);
+                        _b = spline_util<NumType>::allocate(_size);
+                        memcpy(_a, other._a, _size*sizeof(NumType));
+                        memcpy(_b, other._b, _size*sizeof(NumType));
+                  }
             }
 
             inline unsigned int get_index(NumType x) const
@@ -107,7 +113,11 @@ namespace tachy
       public:
             linear_spline_uniform_index_base() :
                   _key("DUMMY LSui"),
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),
@@ -117,7 +127,11 @@ namespace tachy
             
             linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
                   _key("LSui_" + name),
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),
@@ -193,7 +207,11 @@ namespace tachy
             }
 
             linear_spline_uniform_index_base(const linear_spline_uniform_index_base& other) :
+                  _size(0),
+                  _idx_size(0),
                   _num_slices(1),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0),
                   _idx(0),

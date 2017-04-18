@@ -59,16 +59,19 @@ namespace tachy
                   assert(_a == 0 && _b == 0);
                   _key = key;
                   _size = size;
-                  _a = spline_util<NumType>::template allocate<NumType>(size);
-                  _b = spline_util<NumType>::template allocate<NumType>(size);
-                  _dx = dx;
-                  _x0 = x0;
-                  for (int i = 0; i < _size; ++i)
+                  if (_size > 0)
                   {
-                        _a[i] = a[i];
-                        _b[i] = b[i];
+                        _a = spline_util<NumType>::template allocate<NumType>(size);
+                        _b = spline_util<NumType>::template allocate<NumType>(size);
+                        _dx = dx;
+                        _x0 = x0;
+                        for (int i = 0; i < _size; ++i)
+                        {
+                              _a[i] = a[i];
+                              _b[i] = b[i];
+                        }
+                        set_packed();
                   }
-                  set_packed();
             }
 
       public:
@@ -76,12 +79,18 @@ namespace tachy
 
             linear_spline_uniform() :
                   _key("DUMMY LSu"),
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {}
             
             linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
                   _key("LSu_" + name),
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {
@@ -137,6 +146,9 @@ namespace tachy
             }
 
             linear_spline_uniform(const linear_spline_uniform& other) :
+                  _size(0),
+                  _dx(0),
+                  _x0(0),
                   _a(0),
                   _b(0)
             {
