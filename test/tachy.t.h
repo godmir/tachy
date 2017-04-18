@@ -1137,7 +1137,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline");
 
-            tachy::linear_spline_uniform_index<real_t, false> s("test", pts);
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, true);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1153,7 +1153,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_2");
 
-            tachy::linear_spline_uniform_index<real_t, false> s("testu", pts_uniform);
+            tachy::linear_spline_uniform_index<real_t, false> s("testu", pts_uniform, true);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1165,11 +1165,33 @@ public:
             }
       }
 
+      void test_uniform_index_spline_3()
+      {
+            TS_TRACE("test_uniform_index_spline_3");
+
+            tachy::linear_spline_uniform_index<real_t, false> s0("test", pts, true);
+
+            xy_vector_t pts_xy;
+            pts_xy.reserve(pts.size()+1);
+            for (int i = 0; i < pts.size(); ++i)
+                  pts_xy.push_back(xy_vector_t::value_type(pts[i].first, s0(pts[i].first)));
+            double x = 2.0*pts.back().first - pts[pts.size()-2].first;
+            pts_xy.push_back(xy_vector_t::value_type(x, s0(x)));
+                             
+            tachy::linear_spline_uniform_index<real_t, false> s1("testxy", pts_xy, false);
+            
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  const real_t delta = 10.0*std::abs(s0(src[i]))*std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(s1(src[i]), s0(src[i]), delta);
+            }
+      }
+
       void test_unifrom_index_spline_vector()
       {
             TS_TRACE("test_uniform_index_spline_vector");
             
-            tachy::linear_spline_uniform_index<real_t, false> s("test", pts);
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, true);
             
             vector_t x("x", date, src);
             vector_t r("r", date, tgt);
@@ -1192,7 +1214,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_vector_2");
             
-            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform);
+            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform, true);
             
             vector_t x("x", date, src);
             vector_t r("r", date, tgt);
@@ -1215,7 +1237,7 @@ public:
       {
             TS_TRACE("test_mod_uniform_index_spline");
 
-            tachy::linear_spline_uniform_index<real_t, false> s0("base", pts);
+            tachy::linear_spline_uniform_index<real_t, false> s0("base", pts, true);
 
             cache_t cache("the_cache");
 

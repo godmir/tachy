@@ -115,7 +115,7 @@ namespace tachy
                   _x0_packed(0)
             {}
             
-            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
+            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
                   _key("LSui_" + name),
                   _num_slices(1),
                   _a(0),
@@ -151,11 +151,28 @@ namespace tachy
                   _size = raw_size + 1;
                   _a = spline_util<NumType>::template allocate<NumType>(_size);
                   _b = spline_util<NumType>::template allocate<NumType>(_size);
-                  _a[0] = _b[0] = 0.0;
-                  for (int i = 1; i < _size; ++i)
+                  if (as_slopes)
                   {
-                        _b[i] = _b[i-1] + nodes[i-1].second;
-                        _a[i] = _a[i-1] - nodes[i-1].second*nodes[i-1].first;
+                        _a[0] = _b[0] = 0.0;
+                        for (int i = 1; i < _size; ++i)
+                        {
+                              _b[i] = _b[i-1] + nodes[i-1].second;
+                              _a[i] = _a[i-1] - nodes[i-1].second*nodes[i-1].first;
+                        }
+                  }
+                  else
+                  {
+                        // y = yn-1 + (yn - yn-1)/(xn - xn-1)*(x - xn-1)
+                        //   = (yn - yn-1)/(xn - xn-1)*x + yn-1 - (yn - yn-1)/(xn - xn-1)*xn-1
+                        _a[0] = nodes[0].first;
+                        _b[0] = 0.0;
+                        for (int i = 1; i < _size-1; ++i)
+                        {
+                              _b[i] = (nodes[i].second - nodes[i-1].second)/(nodes[i].first - nodes[i-1].first);
+                              _a[i] = nodes[i-1].second - _b[i]*nodes[i-1].first;
+                        }
+                        _b[_size-1] = 0.0;
+                        _a[_size-1] = _a[_size-2];
                   }
                   
                   NumType x1 = nodes.back().first + delta;
@@ -225,8 +242,8 @@ namespace tachy
                   base_t::_key = "DUMMY LSuin";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
-                  base_t(name, nodes)
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
+                  base_t(name, nodes, as_slopes)
             {
                   base_t::_key = "LSuin_" + name;
             }
@@ -300,8 +317,8 @@ namespace tachy
                   base_t::_key = "DUMMY LSuiy";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
-                  base_t(name, nodes)
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
+                  base_t(name, nodes, as_slopes)
             {
                   base_t::_key = "LSuiy_" + name;
             }
