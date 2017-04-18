@@ -186,7 +186,7 @@ namespace tachy
                               _a[i] = nodes[i-1].second - _b[i]*nodes[i-1].first;
                         }
                         _b[_size-1] = 0.0;
-                        _a[_size-1] = _a[_size-2];
+                        _a[_size-1] = nodes.back().second;
                   }
                   
                   NumType x1 = nodes.back().first + delta;
