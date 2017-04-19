@@ -248,7 +248,6 @@ namespace tachy
             typedef op_engine_delayed_cache<NumType, Op1, OpType, Op2, Level> const& ref_type_t;
       };
       
-/*****---------------------------------------- Fri Sep  7 2012 ----------*****/
 
 #define TACHY_EXPR_OPERATOR_PACK(OP_TYPE, OP) \
       /* 1) general case template for binary operation */                                    \

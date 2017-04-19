@@ -1,8 +1,6 @@
 #ifndef TACHY_CACHEABLE_H
 #define TACHY_CACHEABLE_H
 
-/*****---------------------------------------- Thu Aug  1 2013 ----------*****/
-
 namespace tachy
 {
       class cacheable

@@ -10,7 +10,6 @@
 #include "tachy_arch_traits.h"
 #include "tachy_calc_cache.h"
 
-/*****---------------------------------------- Fri Sep  7 2012 ----------*****/
 
 namespace tachy
 {

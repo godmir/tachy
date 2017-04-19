@@ -5,8 +5,6 @@
 
 namespace tachy
 {
-/*****---------------------------------------- Sat Dec 28 2013 ----------*****/
-
       template <typename NumType, class Arg, class Functor>
       struct simple_functor_call_policy
       {
@@ -39,6 +37,7 @@ namespace tachy
             }
       };
 
+
       // The reasoning here:
       // some functors are cheap to create (min/max - only 1 floating number), and created off temp objects
       // others are expensive (e.g. TD linear spline with modulation)
@@ -57,10 +56,10 @@ namespace tachy
             typedef Functor const& held_const_functor_obj_t;
       };
       
+
       // CalcVector Engine for non-static functors - e.g. various Linear Spline objects
       // These classes must implement a method "NumType operator()(NumType) const" -- for time-independent functors
       // OR they must implement "NumType operator()(int, NumType) const" -- for time-dependent functors
-
 
       template <typename NumType,
                 typename Arg,
@@ -269,7 +268,6 @@ namespace tachy
             typedef functor_engine_delayed_cache<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy> const& ref_type_t;
       };
 
-      /*****---------------------------------------- Sat Dec 28 2013 ----------*****/
       
       template <typename NumType>
       class exp_functor

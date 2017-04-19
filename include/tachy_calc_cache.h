@@ -10,8 +10,6 @@
 #include "tachy_exception.h"
 #include "tachy_cacheable.h"
 
-/*****---------------------------------------- Thu Aug  1 2013 ----------*****/
-
 namespace tachy
 {
       template <typename NumType, unsigned int Level>

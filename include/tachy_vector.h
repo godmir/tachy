@@ -199,6 +199,7 @@ namespace tachy
                   _id(id),
                   _anchor_date(date),
                   _own_engine(true),
+                  _do_cache(true),
                   _cache(cache)
             {
                   TACHY_LOG("calc_vector (L>0): c-1V: creating from cache & size: " << id);
@@ -214,13 +215,13 @@ namespace tachy
                   if (k == _cache.end())
                   {
                         _engine = new data_engine_t(eng);
-                        _own_engine = true;
+                        _do_cache = _own_engine = true;
                         TACHY_LOG("calc_vector (L>0): c-2V: Creating copy from same engine: " /* << typeid(eng).name() << " " */ << id);
                   }
                   else
                   {
                         _engine = dynamic_cast<data_engine_t*>(k->second);
-                        _own_engine = false;
+                        _do_cache = _own_engine = false;
                         TACHY_LOG("calc_vector (L>0): c-2V: Creating proxy in place: " << id);
                   }
             }
@@ -230,6 +231,7 @@ namespace tachy
                   _id(id),
                   _anchor_date(date),
                   _own_engine(false),
+                  _do_cache(false),
                   _cache(cache)
             {
                   TACHY_LOG("calc_vector (L>0): c-4V: Creating proxy in place: " << id);
@@ -240,7 +242,8 @@ namespace tachy
             template <class OtherDataEngine, unsigned int OtherLevel>
             calc_vector(const calc_vector<NumType, OtherDataEngine, OtherLevel>& other, cache_t& cache) :
                   _cache(cache),
-                  _own_engine(true)
+                  _own_engine(true),
+                  _do_cache(true)
             {
                   // TODO: add static assert that OtherLevel >= Level -- same logic as for assignment
                   TACHY_LOG("calc_vector (L>0): c-6V: Creating from a different engine: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
@@ -259,7 +262,7 @@ namespace tachy
                   else
                   {
                         _engine = dynamic_cast<data_engine_t*>(k->second);
-                        _own_engine = false;
+                        _do_cache = _own_engine = false;
                   }
             }
 #endif
@@ -269,6 +272,7 @@ namespace tachy
             template <class OtherDataEngine>
             calc_vector(const calc_vector<NumType, OtherDataEngine, Level>& other) :
                   _own_engine(true),
+                  _do_cache(true),
                   _cache(other.cache())
             {
                   TACHY_LOG("calc_vector (L>0): c-7o: Creating from a different engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
@@ -287,7 +291,7 @@ namespace tachy
                   else
                   {
                         _engine = dynamic_cast<data_engine_t*>(k->second);
-                        _own_engine = false;
+                        _do_cache = _own_engine = false;
                   }
             }
 
@@ -295,6 +299,7 @@ namespace tachy
             // useful for e.g. storing objects in std::vector
             calc_vector(const calc_vector& other) :
                   _own_engine(false), // RHS will take care of it - one is enough
+                  _do_cache(false),
                   _cache(other.cache())
             {
                   TACHY_LOG("calc_vector (L>0): c-7s: Creating from the same engine, implicit cache: " << _id << " from " << other.get_id() << "<" << cache_t::cache_level << ">");
@@ -303,17 +308,18 @@ namespace tachy
                   _engine = other._engine;
             }
 
-            template<typename T, class Functor>
-            calc_vector(const std::string& id, int date, cache_t& cache, const Functor& f) :
+            template<typename T, class Generator>
+            calc_vector(const std::string& id, int date, cache_t& cache, const Generator& g) :
                   _id(id),
                   _anchor_date(date),
                   _own_engine(true),
+                  _do_cache(true),
                   _cache(cache)
             {
-                  TACHY_LOG("calc_vector (L>0): c-7V: Creating from a functor: " << id);
-                  _engine = new data_engine_t(f.size());
-                  for (int i = 0, iMax = f.size(); i < iMax; ++i)
-                        _engine->push_back(f(i));
+                  TACHY_LOG("calc_vector (L>0): c-7V: Creating from a generator: " << id);
+                  _engine = new data_engine_t(g.size(), NumType(0));
+                  for (int i = 0, iMax = g.size(); i < iMax; ++i)
+                        (*_engine)[i] = g(i);
             }
 
 #if 1
@@ -375,8 +381,13 @@ namespace tachy
             {
                   if (_own_engine)
                   {
-                        typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
-                        if (k == _cache.end())
+                        bool to_be_cached = false;
+                        if (_do_cache)
+                        {
+                              typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
+                              to_be_cached = (k == _cache.end());
+                        }
+                        if (to_be_cached)
                               _cache[_id] = _engine;
                         else
                               delete _engine;
@@ -409,6 +420,11 @@ namespace tachy
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
                   engine_t eng(*_engine, shift.get_time_shift());
                   return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
+            }
+            
+            void drop()
+            {
+                  _do_cache = false;
             }
             
             const std::string& get_id() const
@@ -472,7 +488,8 @@ namespace tachy
             unsigned int   _anchor_date;
             data_engine_t* _engine; // since it can be a proxy, too
             bool           _own_engine;
-
+            bool           _do_cache;
+            
             cache_t& _cache;
       };
 

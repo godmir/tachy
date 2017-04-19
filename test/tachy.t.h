@@ -914,6 +914,14 @@ public:
                         msg << i << ", " << chk << ", " << r[i] << ", " << chk - r[i] << ", " << delta;
                         TSM_ASSERT_DELTA(msg.str().c_str(), chk, r[i], delta);
                   }
+
+                  if (k == 2)
+                  {
+                        cached_vector_t z = u*v + 1.0;
+                        cached_vector_t y = z*w + 2.0;
+
+                        z.drop();
+                  }
             }
 
             unsigned int num_cached = 0;
@@ -922,7 +930,7 @@ public:
                   ++num_cached;
                   //std::cout << "\n" << num_cached << " cached item: " << i->first << std::endl;
             }
-            TS_ASSERT_EQUALS(2, num_cached);
+            TS_ASSERT_EQUALS(3, num_cached);
       }
 
       void test_static_functors()
@@ -1230,6 +1238,34 @@ public:
                   std::ostringstream msg;
                   msg << i << ", " << x[i] << ", " << src[i] << ", " << y << ", " << r[i];
                   TSM_ASSERT_DELTA(msg.str().c_str(), y, r[i], delta);
+            }
+      }
+
+      void test_unifrom_index_spline_vector_3()
+      {
+            TS_TRACE("test_uniform_index_spline_vector_3");
+            
+            tachy::linear_spline_uniform_index<real_t, false> s0("test_xs", pts, true);
+            
+            xy_vector_t pts_xy;
+            pts_xy.reserve(pts.size()+1);
+            for (int i = 0; i < pts.size(); ++i)
+                  pts_xy.push_back(xy_vector_t::value_type(pts[i].first, s0(pts[i].first)));
+            double x_last = 2.0*pts.back().first - pts[pts.size()-2].first;
+            pts_xy.push_back(xy_vector_t::value_type(x_last, s0(x_last)));
+                             
+            tachy::linear_spline_uniform_index<real_t, false> s1("test_xy", pts_xy, false);
+
+            vector_t x("x", date, src);
+            vector_t r1 = s1(x);
+            vector_t r0 = s0(x);
+            
+            for (int i = 0; i < x.size(); ++i)
+            {
+                  const real_t delta = 10.0*std::abs(r0[i])*std::numeric_limits<real_t>::epsilon();
+                  std::ostringstream msg;
+                  msg << i << ", " << x[i] << ", " << src[i] << ", " << r0[i] << ", " << r1[i];
+                  TSM_ASSERT_DELTA(msg.str().c_str(), r0[i], r1[i], delta);
             }
       }
 
