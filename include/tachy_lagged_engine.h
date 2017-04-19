@@ -11,15 +11,15 @@ namespace tachy
 
       template <> struct lag_checking_policy<true>
       {
-            static unsigned int lag(int idx, int the_lag)
+            static unsigned int lag(int bound, int idx, int the_lag)
             {
-                  return std::max<int>(0, idx - the_lag);
+                  return std::max<int>(bound, idx - the_lag);
             }
       };
 
       template <> struct lag_checking_policy<false>
       {
-            static unsigned int lag(int idx, int the_lag)
+            static unsigned int lag(int, int idx, int the_lag)
             {
                   return idx - the_lag;
             }
@@ -38,7 +38,7 @@ namespace tachy
 
             NumType operator[] (int idx) const
             {
-                  return _op[lag_checking_policy<Checked>::lag(idx, _lag)]; // checking upper boundary is left for the operand itself
+                  return _op[lag_checking_policy<Checked>::lag(_op.get_num_hist(), idx, _lag)]; // checking upper boundary is left for the operand itself
             }
 
             unsigned int size() const
@@ -48,7 +48,7 @@ namespace tachy
 
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return _op.get_packed(lag_checking_policy<Checked>::lag(idx, _lag));
+                  return _op.get_packed(lag_checking_policy<Checked>::lag(_op.get_num_hist(), idx, _lag));
             }
 
       protected:
