@@ -178,7 +178,7 @@ namespace tachy
                   {
                         // y = yn-1 + (yn - yn-1)/(xn - xn-1)*(x - xn-1)
                         //   = (yn - yn-1)/(xn - xn-1)*x + yn-1 - (yn - yn-1)/(xn - xn-1)*xn-1
-                        _a[0] = nodes[0].first;
+                        _a[0] = nodes[0].second;
                         _b[0] = 0.0;
                         for (int i = 1; i < _size-1; ++i)
                         {
