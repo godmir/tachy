@@ -59,7 +59,7 @@ struct Model
             lsPoints[5] = XYPair_t(0.15, -0.03);
             lsPoints[6] = XYPair_t(0.20, -0.02);
             lsPoints[7] = XYPair_t(0.25, -0.01);
-            baseRefi = Spline_t("refi", lsPoints);
+            baseRefi = Spline_t("refi", lsPoints, true);
       }
 };
 
@@ -341,11 +341,15 @@ void runAll(const Model& model, const vector<Pool*>& collateral, int projDate, i
                   pmtRatio1 = actPmts*wouldBeInvPmts1 - model.eiOffset;
                   pmtRatio2 = actPmts*wouldBeInvPmts2 - model.eiOffset;
                   pmtRatio3 = actPmts*wouldBeInvPmts3 - model.eiOffset;
-
+#if 0
+                  // the following should be detected - via keys - find left key on the right
+                  // and disallowed (or maybe disable vectorization)
                   burnout[0] = 0.0;
+                  burnout = burnout[t-1] + tachy::max(0.0, tachy::min(pmtRatio1, 0.2));
+#else
                   for (unsigned int i = 1; i < nProj; ++i)
                         burnout[i] = 0.98*burnout[i-1] + max(0.0, min(pmtRatio1[i], 0.2));
-
+#endif
                   AgeVec2_t wala("wala", projDate, AgeVec2_t::data_engine_t(p->wala, p->wam), *p);
 
                   std::vector<CVec2_t> modulation;
