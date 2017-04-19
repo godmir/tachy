@@ -748,18 +748,20 @@ public:
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], v0[i]);
 
-            tachy::time_shift t(2);
+            int dt = 2;
+            tachy::time_shift t;
             for (int i = 0; i < t.get_time_shift(); ++i)
-                  TS_ASSERT_EQUALS(src[0], v0[t][i]);
-            for (int i = t.get_time_shift(); i < v0.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i-t.get_time_shift()], v0[t][i]);
+                  TS_ASSERT_EQUALS(src[0], v0[t-dt][i]);
+            for (int i = dt; i < v0.size(); ++i)
+                  TS_ASSERT_EQUALS(src[i-dt], v0[t-dt][i]);
 
+            t -= dt;
             vector_t v1 = v0[t];
             TS_ASSERT_EQUALS(src.size(), v1.size());
-            for (int i = 0; i < t.get_time_shift(); ++i)
+            for (int i = 0; i < abs(t.get_time_shift()); ++i)
                   TS_ASSERT_EQUALS(src[0], v1[i]);
-            for (int i = t.get_time_shift(); i < v1.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i-t.get_time_shift()], v1[i]);
+            for (int i = abs(t.get_time_shift()); i < v1.size(); ++i)
+                  TS_ASSERT_EQUALS(src[i+t.get_time_shift()], v1[i]);
       }
 
       void test_clone()

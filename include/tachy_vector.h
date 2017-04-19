@@ -116,7 +116,7 @@ namespace tachy
             {
                   typedef lagged_engine<NumType, data_engine_t, true> engine_t;
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
-                  engine_t eng(_engine, shift.get_time_shift());
+                  engine_t eng(_engine, -shift.get_time_shift()); // because lag already implies a "-"
                   return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
             }
             
@@ -418,7 +418,7 @@ namespace tachy
             {
                   typedef lagged_engine<NumType, data_engine_t, true> engine_t;
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
-                  engine_t eng(*_engine, shift.get_time_shift());
+                  engine_t eng(_engine, -shift.get_time_shift()); // because lag already implies a "-"
                   return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
             }
             
@@ -593,7 +593,7 @@ namespace tachy
             const calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0> operator[](const time_shift& shift) const
             {
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK ") + _id);
-                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, _anchor_date, lagged_engine<NumType, data_engine_t, true>(_engine, shift.get_time_shift()));
+                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, _anchor_date, lagged_engine<NumType, data_engine_t, true>(_engine, -shift.get_time_shift()));
             }
       
             NumType operator[] (int idx) const
@@ -783,7 +783,7 @@ namespace tachy
             const calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0> operator[](const time_shift& shift) const
             {
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK ") + _id);
-                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, _anchor_date, lagged_engine<NumType, data_engine_t, true>(_engine, shift.get_time_shift()));
+                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, _anchor_date, lagged_engine<NumType, data_engine_t, true>(_engine, -shift.get_time_shift()));
             }
       
             const std::string& get_id() const
