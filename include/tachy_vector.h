@@ -418,7 +418,7 @@ namespace tachy
             {
                   typedef lagged_engine<NumType, data_engine_t, true> engine_t;
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
-                  engine_t eng(_engine, -shift.get_time_shift()); // because lag already implies a "-"
+                  engine_t eng(*_engine, -shift.get_time_shift()); // because lag already implies a "-"
                   return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
             }
             
