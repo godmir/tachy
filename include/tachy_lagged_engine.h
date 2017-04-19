@@ -11,7 +11,7 @@ namespace tachy
 
       template <> struct lag_checking_policy<true>
       {
-            static unsigned int lag(int bound, int idx, int the_lag)
+            static int lag(int bound, int idx, int the_lag)
             {
                   return std::max<int>(bound, idx - the_lag);
             }
@@ -19,7 +19,7 @@ namespace tachy
 
       template <> struct lag_checking_policy<false>
       {
-            static unsigned int lag(int, int idx, int the_lag)
+            static int lag(int, int idx, int the_lag)
             {
                   return idx - the_lag;
             }
