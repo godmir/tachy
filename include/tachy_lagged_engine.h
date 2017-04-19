@@ -11,7 +11,7 @@ namespace tachy
 
       template <> struct lag_checking_policy<true>
       {
-            static unsigned int lag(int idx, unsigned int the_lag)
+            static unsigned int lag(int idx, int the_lag)
             {
                   return std::max<int>(0, idx - the_lag);
             }
@@ -19,7 +19,7 @@ namespace tachy
 
       template <> struct lag_checking_policy<false>
       {
-            static unsigned int lag(int idx, unsigned int the_lag)
+            static unsigned int lag(int idx, int the_lag)
             {
                   return idx - the_lag;
             }
@@ -31,7 +31,7 @@ namespace tachy
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
 
-            lagged_engine(const Op& op, unsigned int lag) : _op(op), _lag(lag) {}
+            lagged_engine(const Op& op, int lag) : _op(op), _lag(lag) {}
 
             // Copying is suspect - it may lead to dangling references (see the type of _op variable)
             lagged_engine(const lagged_engine& other) : _op(other._op), _lag(other._lag) {}
@@ -53,7 +53,7 @@ namespace tachy
 
       protected:
             typename data_engine_traits<Op>::ref_type_t _op;
-            unsigned int _lag;
+            int _lag;
 
             lagged_engine& operator= (const lagged_engine& other)
             {
