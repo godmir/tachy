@@ -751,6 +751,8 @@ namespace tachy
                   _anchor_date = other.get_start_date();
                   unsigned int sz = std::min(other.size(), _engine.size());
                   int i = 0;
+                  for (int i_last = std::min(sz, arch_traits_t::stride - (_engine.get_num_hist()%arch_traits_t::stride)); i < i_last; ++i)
+                        _engine[i] = other[i];
                   for (int i_last = sz; i < i_last; i += arch_traits_t::stride)
                         get_packed(i) = other.get_packed(i);
                   for (int i_last = sz; i < i_last; ++i)
