@@ -195,34 +195,35 @@ namespace tachy
 
             // no default c'tor
 
-            calc_vector(const std::string& id, int date, const unsigned int size, cache_t& cache) :
+            calc_vector(const std::string& id, int date, const unsigned int size, cache_t& cache, bool do_cache) :
                   _id(id),
                   _anchor_date(date),
                   _own_engine(true),
-                  _do_cache(true),
+                  _do_cache(do_cache),
                   _cache(cache)
             {
                   TACHY_LOG("calc_vector (L>0): c-1V: creating from cache & size: " << id);
                   _engine = new data_engine_t(size, NumType(0));
             }
 
-            calc_vector(const std::string& id, int date, const std::vector<NumType>& eng, cache_t& cache) :
+            calc_vector(const std::string& id, int date, const std::vector<NumType>& eng, cache_t& cache, bool do_cache) :
                   _id(id),
                   _anchor_date(date),
+                  _own_engine(true),
+                  _do_cache(do_cache),
                   _cache(cache)
             {
                   const typename cache_t::cache_engine_t::const_iterator k = _cache.find(_id);
                   if (k == _cache.end())
                   {
                         _engine = new data_engine_t(eng);
-                        _do_cache = _own_engine = true;
+                        //_do_cache = _own_engine = true;
                         TACHY_LOG("calc_vector (L>0): c-2V: Creating copy from same engine: " /* << typeid(eng).name() << " " */ << id);
                   }
                   else
                   {
-                        _engine = dynamic_cast<data_engine_t*>(k->second);
-                        _do_cache = _own_engine = false;
-                        TACHY_LOG("calc_vector (L>0): c-2V: Creating proxy in place: " << id);
+                        _own_engine = false;
+                        TACHY_THROW("Trying to overwrite an already cached vector: " << _id);
                   }
             }
 
@@ -290,6 +291,7 @@ namespace tachy
                   }
                   else
                   {
+                        // already cached - so simply point to the cached engine
                         _engine = dynamic_cast<data_engine_t*>(k->second);
                         _do_cache = _own_engine = false;
                   }
@@ -420,6 +422,11 @@ namespace tachy
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK_") + _id);
                   engine_t eng(*_engine, -shift.get_time_shift()); // because lag already implies a "-"
                   return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, Level>(hashed_id, _anchor_date, eng, _cache);
+            }
+
+            void keep()
+            {
+                  _do_cache = _own_engine;
             }
             
             void drop()
