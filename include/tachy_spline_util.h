@@ -13,6 +13,13 @@ namespace tachy
       {
             typedef std::pair<NumType, NumType> xy_pair_t;
 
+            enum SPLINE_INIT_TYPE
+            {
+                  SPLINE_INIT_FROM_INCR_SLOPES,
+                  SPLINE_INIT_FROM_LOCAL_SLOPES,
+                  SPLINE_INIT_FROM_XY_POINTS
+            };
+            
             static inline NumType epsilon()
             {
                   return NumType(1e-6);

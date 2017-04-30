@@ -46,6 +46,8 @@ namespace tachy
             packed_t* _dx_packed;
             packed_t* _x0_packed;
 
+            enum spline_util<NumType>::SPLINE_INIT_TYPE _init_type;
+            
             void set_packed()
             {
                   if (_dx_packed == 0)
@@ -82,6 +84,7 @@ namespace tachy
                   }
                   _dx = other._dx;
                   _x0 = other._x0;
+                  _init_type = other._init_type;
                   set_packed();
             }
             
@@ -122,10 +125,11 @@ namespace tachy
                   _b(0),
                   _idx(0),
                   _dx_packed(0),
-                  _x0_packed(0)
+                  _x0_packed(0),
+                  _init_type(spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS)
             {}
             
-            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
+            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
                   _key("LSui_" + name),
                   _size(0),
                   _idx_size(0),
@@ -136,7 +140,8 @@ namespace tachy
                   _b(0),
                   _idx(0),
                   _dx_packed(0),
-                  _x0_packed(0)
+                  _x0_packed(0),
+                  _init_type(init_type)
             {
                   const NumType k_eps = spline_util<NumType>::epsilon();
 
@@ -157,16 +162,13 @@ namespace tachy
                               TACHY_THROW("Cannot convert spline to uniform");
                   }
 
-                  NumType delta = k_eps*d0;
-                  _dx = 1.0/delta;
-                  _x0 = nodes.front().first - delta;
-
                   unsigned int raw_size = nodes.size();
-                  _size = raw_size + 1;
+                  _size = raw_size + (_init_type != spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS ? 1 : -1);
                   _a = spline_util<NumType>::template allocate<NumType>(_size);
                   _b = spline_util<NumType>::template allocate<NumType>(_size);
-                  if (as_slopes)
+                  if (_init_type == spline_util<NumType>::SPLINE_INIT_FROM_INCR_SLOPES)
                   {
+                        // y = Sum( s_k * max(0, x - x_k) )
                         _a[0] = _b[0] = 0.0;
                         for (int i = 1; i < _size; ++i)
                         {
@@ -174,31 +176,43 @@ namespace tachy
                               _a[i] = _a[i-1] - nodes[i-1].second*nodes[i-1].first;
                         }
                   }
-                  else
+                  else if (_init_type == spline_util<NumType>::SPLINE_INIT_FROM_LOCAL_SLOPES)
+                  {
+                        // y = Sum( s_k * max(0, min(x_k+1, x) - x_k) )
+                        _a[0] = _b[0] = 0.0;
+                        for (int i = 1; i < _size; ++i)
+                        {
+                              _b[i] = nodes[i-1].second;
+                              _a[i] = _a[i-1] - (_b[i] - _b[i-1])*nodes[i-1].first;
+                        }
+                  }
+                  else if (_init_type == spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS)
                   {
                         // y = yn-1 + (yn - yn-1)/(xn - xn-1)*(x - xn-1)
                         //   = (yn - yn-1)/(xn - xn-1)*x + yn-1 - (yn - yn-1)/(xn - xn-1)*xn-1
-                        _a[0] = nodes[0].second;
-                        _b[0] = 0.0;
-                        for (int i = 1; i < _size-1; ++i)
+                        for (int i = 0; i < _size; ++i)
                         {
-                              _b[i] = (nodes[i].second - nodes[i-1].second)/(nodes[i].first - nodes[i-1].first);
-                              _a[i] = nodes[i-1].second - _b[i]*nodes[i-1].first;
+                              _b[i] = (nodes[i+1].second - nodes[i].second)/(nodes[i+1].first - nodes[i].first);
+                              _a[i] = nodes[i].second - _b[i]*nodes[i].first;
                         }
-                        _b[_size-1] = 0.0;
-                        _a[_size-1] = nodes.back().second;
                   }
+                  else
+                        TACHY_THROW("Initialization type not supported");
                   
-                  NumType x1 = nodes.back().first + delta;
+                  NumType delta = k_eps*d0;
+                  _dx = 1.0/delta;
+                  _x0 = nodes.front().first - (_init_type == spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS ? 0.0 : delta);
+                  NumType x1 = delta + (_init_type == spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS ? nodes[raw_size-2].first : nodes.back().first);
                   _idx_size = (unsigned int)((x1 - _x0)*_dx + 0.5);
                   _idx = spline_util<NumType>::template allocate<unsigned int>(_idx_size);
                   NumType x = _x0 + 0.5*delta;
                   unsigned int i = 0;
+                  unsigned int offset = _init_type == spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS ? 1 : 0;
                   _idx[0] = i;
                   for (int k = 1; k < _idx_size; ++k)
                   {
                         x += delta;
-                        if (i < raw_size && x > nodes[i].first)
+                        if (i + offset < raw_size && x > nodes[i + offset].first)
                               ++i;
                         _idx[k] = i;
                   }
@@ -216,7 +230,8 @@ namespace tachy
                   _b(0),
                   _idx(0),
                   _dx_packed(0),
-                  _x0_packed(0)
+                  _x0_packed(0),
+                  _init_type(spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS)
             {
                   copy(other);
             }
@@ -245,6 +260,11 @@ namespace tachy
             {
                   return _a;
             }
+
+            enum spline_util<NumType>::SPLINE_INIT_TYPE get_init_type() const
+            {
+                  return _init_type;
+            }
       };
 
       template <typename NumType, bool TimeDependent = false>
@@ -260,8 +280,8 @@ namespace tachy
                   base_t::_key = "DUMMY LSuin";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
-                  base_t(name, nodes, as_slopes)
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
+                  base_t(name, nodes, init_type)
             {
                   base_t::_key = "LSuin_" + name;
             }
@@ -335,8 +355,8 @@ namespace tachy
                   base_t::_key = "DUMMY LSuiy";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, bool as_slopes) throw(exception) :
-                  base_t(name, nodes, as_slopes)
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
+                  base_t(name, nodes, init_type)
             {
                   base_t::_key = "LSuiy_" + name;
             }
@@ -374,18 +394,41 @@ namespace tachy
                   resize(mod_size);
                   const NumType* const orig_a = base.get_intercepts();
                   const NumType* const orig_b = base.get_slopes();
-                  for (int i = 0, k = 0; i < mod_size; ++i, k += base_t::_size)
+                  base_t::_init_type = base.get_init_type();
+                  if (base_t::_init_type == spline_util<NumType>::SPLINE_INIT_FROM_LOCAL_SLOPES)
                   {
-                        base_t::_a[k+0] = base_t::_b[k+0] = NumType(0);
+                        std::vector<NumType> x(base_t::_size-2, 0.0);
+                        for (int j = 0, j_max = x.size(); j < j_max; ++j)
+                              x[j] = -(orig_a[j+2] - orig_a[j+1])/(orig_b[j+2] - orig_b[j+1]);
+                        for (int i = 0, k = 0; i < mod_size; ++i, k += base_t::_size)
+                        {
+                              base_t::_a[k+0] = base_t::_b[k+0] = NumType(0);
 
-                        base_t::_b[k+1] = modulation[0][i]*orig_b[1];
-                        for (int j = 2; j < base_t::_size; ++j)
-                              base_t::_b[k+j] = base_t::_b[k+j-1] + modulation[j-1][i]*(orig_b[j] - orig_b[j-1]);
+                              for (int j = 1; j < base_t::_size; ++j)
+                                    base_t::_b[k+j] = modulation[j-1][i]*orig_b[j];
 
-                        base_t::_a[k+1] = modulation[0][i]*orig_a[1];
-                        for (int j = 2; j < base_t::_size; ++j)
-                              base_t::_a[k+j] = base_t::_a[k+j-1] + modulation[j-1][i]*(orig_a[j] - orig_a[j-1]);
+                              base_t::_b[k+1] = modulation[0][i]*orig_b[1];
+                              for (int j = 2; j < base_t::_size; ++j)
+                                    base_t::_a[k+j] = base_t::_a[k+j-1] - x[j-2]*(modulation[j-1][i]*orig_b[j] - modulation[j-2][i]*orig_b[j-1]);
+                        }
                   }
+                  else if (base_t::_init_type == spline_util<NumType>::SPLINE_INIT_FROM_INCR_SLOPES)
+                  {
+                        for (int i = 0, k = 0; i < mod_size; ++i, k += base_t::_size)
+                        {
+                              base_t::_a[k+0] = base_t::_b[k+0] = NumType(0);
+                              
+                              base_t::_b[k+1] = modulation[0][i]*orig_b[1];
+                              for (int j = 2; j < base_t::_size; ++j)
+                                    base_t::_b[k+j] = base_t::_b[k+j-1] + modulation[j-1][i]*(orig_b[j] - orig_b[j-1]);
+
+                              base_t::_a[k+1] = modulation[0][i]*orig_a[1];
+                              for (int j = 2; j < base_t::_size; ++j)
+                                    base_t::_a[k+j] = base_t::_a[k+j-1] + modulation[j-1][i]*(orig_a[j] - orig_a[j-1]);
+                        }
+                  }
+                  else
+                        TACHY_THROW("Modulation not supported for the spline type");
             }
             
             spline_t& operator= (const spline_t& other)

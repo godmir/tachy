@@ -889,15 +889,26 @@ public:
             }
       }
 
+      cached_vector_t make_cached_vector(cache_t& cache, const char* name, const std::vector<real_t>& src) const
+      {
+            cached_vector_t vec(name, date, src.size(), cache, false);
+            for (int i = 0; i < src.size(); ++i)
+                  vec[i] = src[i];
+            return vec;
+      }
+      
       void test_caching_1()
       {
             TS_TRACE("test_caching_1");
 
             cache_t cache("c0");
-            
-            cached_vector_t u("u", date, src[1], cache);
-            cached_vector_t v("v", date, src[2], cache);
-            cached_vector_t w("w", date, src[3], cache);
+
+            cached_vector_t u("u", date, src[1], cache, false);
+            cached_vector_t v("v", date, src[2], cache, false);
+            cached_vector_t w = make_cached_vector(cache, "w", src[3]);
+
+            for (cache_t::cache_engine_t::const_iterator i = cache.begin(); i != cache.end(); ++i)
+                  std::cout << "\n" << " cached item: " << i->first << std::endl;
             
             for (int k = 0; k < 10; ++k)
             {
@@ -930,7 +941,7 @@ public:
             for (cache_t::cache_engine_t::const_iterator i = cache.begin(); i != cache.end(); ++i)
             {
                   ++num_cached;
-                  //std::cout << "\n" << num_cached << " cached item: " << i->first << std::endl;
+                  std::cout << "\n" << num_cached << " cached item: " << i->first << std::endl;
             }
             TS_ASSERT_EQUALS(3, num_cached);
       }
@@ -945,7 +956,17 @@ public:
             r = exp(-x);
 
             for (int i = 0; i < r.size(); ++i)
-                  TS_ASSERT_EQUALS(exp(-src[1][i]), r[i]);
+                  TS_ASSERT_EQUALS(std::exp(-src[1][i]), r[i]);
+
+            r = log(1.1 + 0.5*x);
+
+            for (int i = 0; i < r.size(); ++i)
+                  TS_ASSERT_EQUALS(std::log(1.1 + 0.5*src[1][i]), r[i]);
+
+            r = abs(x);
+
+            for (int i = 0; i < r.size(); ++i)
+                  TS_ASSERT_EQUALS(std::abs(src[1][i]), r[i]);
       }
 
       void test_size_queries()
@@ -1147,7 +1168,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline");
 
-            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, true);
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1163,7 +1184,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_2");
 
-            tachy::linear_spline_uniform_index<real_t, false> s("testu", pts_uniform, true);
+            tachy::linear_spline_uniform_index<real_t, false> s("testu", pts_uniform, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1179,16 +1200,18 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_3");
 
-            tachy::linear_spline_uniform_index<real_t, false> s0("test", pts, true);
+            tachy::linear_spline_uniform_index<real_t, false> s0("test", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
 
             xy_vector_t pts_xy;
-            pts_xy.reserve(pts.size()+1);
+            pts_xy.reserve(pts.size()+2);
+            double x = 2.0*pts.front().first - pts[1].first;
+            pts_xy.push_back(xy_vector_t::value_type(x, s0(x)));
             for (int i = 0; i < pts.size(); ++i)
                   pts_xy.push_back(xy_vector_t::value_type(pts[i].first, s0(pts[i].first)));
-            double x = 2.0*pts.back().first - pts[pts.size()-2].first;
+            x = 2.0*pts.back().first - pts[pts.size()-2].first;
             pts_xy.push_back(xy_vector_t::value_type(x, s0(x)));
                              
-            tachy::linear_spline_uniform_index<real_t, false> s1("testxy", pts_xy, false);
+            tachy::linear_spline_uniform_index<real_t, false> s1("testxy", pts_xy, tachy::spline_util<real_t>::SPLINE_INIT_FROM_XY_POINTS);
             
             for (int i = 0; i < src.size(); ++i)
             {
@@ -1197,11 +1220,28 @@ public:
             }
       }
 
+      void test_uniform_index_spline_4()
+      {
+            TS_TRACE("test_uniform_index_spline_4");
+
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_LOCAL_SLOPES);
+            
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts.size()-1; ++k)
+                        y += pts[k].second*std::max<real_t>(0.0, std::min<real_t>(src[i], pts[k+1].first) - pts[k].first);
+                  y += pts.back().second*std::max<real_t>(0, src[i] - pts.back().first);
+                  const real_t delta = std::abs(y)*1e-8; //std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(s(src[i]), y, delta);
+            }
+      }
+
       void test_unifrom_index_spline_vector()
       {
             TS_TRACE("test_uniform_index_spline_vector");
             
-            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, true);
+            tachy::linear_spline_uniform_index<real_t, false> s("test", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
             vector_t x("x", date, src);
             vector_t r("r", date, tgt);
@@ -1224,7 +1264,7 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_vector_2");
             
-            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform, true);
+            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
             vector_t x("x", date, src);
             vector_t r("r", date, tgt);
@@ -1247,16 +1287,18 @@ public:
       {
             TS_TRACE("test_uniform_index_spline_vector_3");
             
-            tachy::linear_spline_uniform_index<real_t, false> s0("test_xs", pts, true);
+            tachy::linear_spline_uniform_index<real_t, false> s0("test_xs", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
             xy_vector_t pts_xy;
-            pts_xy.reserve(pts.size()+1);
+            pts_xy.reserve(pts.size()+2);
+            double x_first = 2.0*pts.front().first - pts[1].first;
+            pts_xy.push_back(xy_vector_t::value_type(x_first, s0(x_first)));
             for (int i = 0; i < pts.size(); ++i)
                   pts_xy.push_back(xy_vector_t::value_type(pts[i].first, s0(pts[i].first)));
             double x_last = 2.0*pts.back().first - pts[pts.size()-2].first;
             pts_xy.push_back(xy_vector_t::value_type(x_last, s0(x_last)));
                              
-            tachy::linear_spline_uniform_index<real_t, false> s1("test_xy", pts_xy, false);
+            tachy::linear_spline_uniform_index<real_t, false> s1("test_xy", pts_xy, tachy::spline_util<real_t>::SPLINE_INIT_FROM_XY_POINTS);
 
             vector_t x("x", date, src);
             vector_t r1 = s1(x);
@@ -1271,11 +1313,35 @@ public:
             }
       }
 
+      void test_unifrom_index_spline_vector_4()
+      {
+            TS_TRACE("test_uniform_index_spline_vector_4");
+            
+            tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_LOCAL_SLOPES);
+            
+            vector_t x("x", date, src);
+            vector_t r("r", date, tgt);
+
+            r = s(x);
+
+            for (int i = 0; i < r.size(); ++i)
+            {
+                  real_t y = 0.0;
+                  for (int k = 0; k < pts.size()-1; ++k)
+                        y += pts[k].second*std::max<real_t>(0.0, std::min<real_t>(src[i], pts[k+1].first) - pts[k].first);
+                  y += pts.back().second*std::max<real_t>(0.0, src[i] - pts.back().first);
+                  const real_t delta = std::abs(y)*1e-8; //std::numeric_limits<real_t>::epsilon();
+                  std::ostringstream msg;
+                  msg << i << ", " << x[i] << ", " << src[i] << ", " << y << ", " << r[i] << ", " << std::abs<real_t>(y - r[i]) << ", " << delta;
+                  TSM_ASSERT_DELTA(msg.str().c_str(), y, r[i], delta);
+            }
+      }
+
       void test_mod_uniform_index_spline()
       {
             TS_TRACE("test_mod_uniform_index_spline");
 
-            tachy::linear_spline_uniform_index<real_t, false> s0("base", pts, true);
+            tachy::linear_spline_uniform_index<real_t, false> s0("base", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
 
             cache_t cache("the_cache");
 
@@ -1286,7 +1352,7 @@ public:
             {
                   std::ostringstream id;
                   id << "mod " << i + 1;
-                  modulation.push_back(cached_vector_t(id.str(), 20170320, n_mod, cache));
+                  modulation.push_back(cached_vector_t(id.str(), 20170320, n_mod, cache, true));
                   real_t amp = real_t(random())/RAND_MAX;
                   for (int t = 0; t < n_mod; ++t)
                         modulation[i][t] = amp*exp(-real_t(t)/n_mod);
@@ -1303,7 +1369,7 @@ public:
                               real_t y = 0.0;
                               for (int k = 0; k < pts.size(); ++k)
                                     y += modulation[k][t]*pts[k].second*std::max<real_t>(0.0, src[i] - pts[k].first);
-                              const real_t delta = 20.0*std::abs(y)*std::numeric_limits<real_t>::epsilon();
+                              const real_t delta = 1e-8*std::abs(y); //*std::numeric_limits<real_t>::epsilon();
                               TS_ASSERT_DELTA(s(t, src[i]), y, delta);
                         }
                   }

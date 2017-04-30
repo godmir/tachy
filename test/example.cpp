@@ -59,7 +59,7 @@ struct Model
             lsPoints[5] = XYPair_t(0.15, -0.03);
             lsPoints[6] = XYPair_t(0.20, -0.02);
             lsPoints[7] = XYPair_t(0.25, -0.01);
-            baseRefi = Spline_t("refi", lsPoints, true);
+            baseRefi = Spline_t("refi", lsPoints, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
       }
 };
 
@@ -259,7 +259,7 @@ public:
             const char* key = "pmts";
             if (false == this->has_key(key))
             {
-                  CachedVector_t pmts(key, projDate, this->wam, *this);
+                  CachedVector_t pmts(key, projDate, this->wam, *this, true);
                   pmtCalc.calcPmts(pmts, this->wac);
             }
             return CachedVector_t(key, projDate, *this);
@@ -270,7 +270,7 @@ public:
             const char* key = "amort";
             if (false == this->has_key(key))
             {
-                  CachedVector_t amort(key, projDate, this->wam, *this);
+                  CachedVector_t amort(key, projDate, this->wam, *this, true);
                   const CachedVector_t pmts = getPmts(pmtCalc, projDate);
                   amort[0] = this->als;
                   real_t cpn1 = 1.0 + this->wac/1200.0;
