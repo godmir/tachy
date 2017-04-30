@@ -277,6 +277,14 @@ namespace tachy
             {
                   return std::exp(x);
             }
+            static inline packed_t log(const packed_t x)
+            {
+                  return std::log(x);
+            }
+            static inline packed_t abs(const packed_t x)
+            {
+                  return std::abs(x);
+            }
             static inline packed_t neg(const packed_t x)
             {
                   return -x;
@@ -434,6 +442,17 @@ namespace tachy
                                      std::exp(((scalar_t*)(&x))[2]),
                                      std::exp(((scalar_t*)(&x))[3]));
             }
+            static inline packed_t log(const packed_t& x)
+            {
+                  return _mm_setr_ps(std::log(((scalar_t*)(&x))[0]),
+                                     std::log(((scalar_t*)(&x))[1]),
+                                     std::log(((scalar_t*)(&x))[2]),
+                                     std::log(((scalar_t*)(&x))[3]));
+            }
+            static inline packed_t abs(const packed_t& x)
+            {
+                  return _mm_max_ps(x, -x);
+            }
             static inline packed_t neg(const packed_t& x)
             {
                   return -x;
@@ -566,6 +585,15 @@ namespace tachy
             {
                   return _mm_setr_pd(std::exp(((scalar_t*)(&x))[0]),
                                      std::exp(((scalar_t*)(&x))[1]));
+            }
+            static inline packed_t log(const packed_t& x)
+            {
+                  return _mm_setr_pd(std::log(((scalar_t*)(&x))[0]),
+                                     std::log(((scalar_t*)(&x))[1]));
+            }
+            static inline packed_t abs(const packed_t& x)
+            {
+                  return _mm_max_pd(x, -x);
             }
             static inline packed_t neg(const packed_t& x)
             {
@@ -711,6 +739,17 @@ namespace tachy
                                      std::exp(((scalar_t*)(&x))[2]),
                                      std::exp(((scalar_t*)(&x))[3]));
             }
+            static inline packed_t log(const packed_t& x)
+            {
+                  return _mm_setr_ps(std::log(((scalar_t*)(&x))[0]),
+                                     std::log(((scalar_t*)(&x))[1]),
+                                     std::log(((scalar_t*)(&x))[2]),
+                                     std::log(((scalar_t*)(&x))[3]));
+            }
+            static inline packed_t abs(const packed_t& x)
+            {
+                  return _mm_max_ps(x, -x);
+            }
             static inline packed_t neg(const packed_t& x)
             {
                   return -x;
@@ -841,6 +880,17 @@ namespace tachy
                                         std::exp(((scalar_t*)(&x))[1]),
                                         std::exp(((scalar_t*)(&x))[2]),
                                         std::exp(((scalar_t*)(&x))[3]));
+            }
+            static inline packed_t log(const packed_t& x)
+            {
+                  return _mm256_setr_pd(std::log(((scalar_t*)(&x))[0]),
+                                        std::log(((scalar_t*)(&x))[1]),
+                                        std::log(((scalar_t*)(&x))[2]),
+                                        std::log(((scalar_t*)(&x))[3]));
+            }
+            static inline packed_t abs(const packed_t& x)
+            {
+                  return _mm256_max_pd(x, -x);
             }
             static inline packed_t neg(const packed_t& x)
             {
@@ -1066,6 +1116,21 @@ namespace tachy
                                         std::exp(((scalar_t*)(&x))[5]),
                                         std::exp(((scalar_t*)(&x))[6]),
                                         std::exp(((scalar_t*)(&x))[7]));
+            }
+            static inline packed_t log(const packed_t& x)
+            {
+                  return _mm256_setr_ps(std::log(((scalar_t*)(&x))[0]),
+                                        std::log(((scalar_t*)(&x))[1]),
+                                        std::log(((scalar_t*)(&x))[2]),
+                                        std::log(((scalar_t*)(&x))[3]),
+                                        std::log(((scalar_t*)(&x))[4]),
+                                        std::log(((scalar_t*)(&x))[5]),
+                                        std::log(((scalar_t*)(&x))[6]),
+                                        std::log(((scalar_t*)(&x))[7]));
+            }
+            static inline packed_t abs(const packed_t& x)
+            {
+                  return _mm256_max_ps(x, -x);
             }
             static inline packed_t neg(const packed_t& x)
             {

@@ -209,6 +209,31 @@ namespace tachy
       };
 
       template <typename NumType>
+      struct log_static_functor
+      {
+            typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
+            typedef typename arch_traits_t::packed_t packed_t;
+
+            template <class Res, class Op>
+            static inline void apply(Res& y, const Op& x)
+            {
+                  unsigned int sz = y.size();
+                  for (unsigned int i = 0; i < sz; ++i)
+                        y[i] = std::log(x[i]);
+            }
+
+            static inline packed_t apply_packed(const packed_t& x)
+            {
+                  return arch_traits_t::log(x);
+            }
+
+            static inline NumType apply(NumType x)
+            {
+                  return std::log(x);
+            }
+      };
+
+      template <typename NumType>
       struct neg_static_functor
       {
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
@@ -230,6 +255,31 @@ namespace tachy
             static inline NumType apply(NumType x)
             {
                   return -x;
+            }
+      };
+      
+      template <typename NumType>
+      struct abs_static_functor
+      {
+            typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
+            typedef typename arch_traits_t::packed_t packed_t;
+
+            template <class Res, class Op>
+            static inline void apply(Res& y, const Op& x)
+            {
+                  unsigned int sz = y.size();
+                  for (unsigned int i = 0; i < sz; ++i)
+                        y[i] = std::abs(x[i]);
+            }
+
+            static inline packed_t apply_packed(const packed_t& x)
+            {
+                  return arch_traits_t::abs(x);
+            }
+
+            static inline NumType apply(NumType x)
+            {
+                  return std::abs(x);
             }
       };
       
@@ -255,6 +305,8 @@ namespace tachy
 
       TACHY_STATIC_UNARY_FUNCTOR_PACK(neg_static_functor<NumType>, operator-, -)
       TACHY_STATIC_UNARY_FUNCTOR_PACK(exp_static_functor<NumType>, exp, EXP_)
+      TACHY_STATIC_UNARY_FUNCTOR_PACK(log_static_functor<NumType>, log, LOG_)
+      TACHY_STATIC_UNARY_FUNCTOR_PACK(abs_static_functor<NumType>, abs, ABS_)
 
 
 
