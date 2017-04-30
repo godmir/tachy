@@ -907,9 +907,6 @@ public:
             cached_vector_t v("v", date, src[2], cache, false);
             cached_vector_t w = make_cached_vector(cache, "w", src[3]);
 
-            for (cache_t::cache_engine_t::const_iterator i = cache.begin(); i != cache.end(); ++i)
-                  std::cout << "\n" << " cached item: " << i->first << std::endl;
-            
             for (int k = 0; k < 10; ++k)
             {
                   set_vector(src[4].size(), src[4]);
@@ -941,7 +938,7 @@ public:
             for (cache_t::cache_engine_t::const_iterator i = cache.begin(); i != cache.end(); ++i)
             {
                   ++num_cached;
-                  std::cout << "\n" << num_cached << " cached item: " << i->first << std::endl;
+                  // std::cout << "\n" << num_cached << " cached item: " << i->first << std::endl;
             }
             TS_ASSERT_EQUALS(3, num_cached);
       }
