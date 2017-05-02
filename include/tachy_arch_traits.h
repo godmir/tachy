@@ -209,6 +209,10 @@ namespace tachy
             {
                   return i;
             }
+            static inline index_t isetinc(const int i)
+            {
+                  return i;
+            }
             static inline index_t cvti(const packed_t x)
             {
                   return int(x + 0.5);
@@ -335,6 +339,11 @@ namespace tachy
             static inline index_t iset1(const int i)
             {
                   index_t idx = { i, i, i, i };
+                  return idx;
+            }
+            static inline index_t isetinc(const int i)
+            {
+                  index_t idx = { i, i+1, i+2, i+3 };
                   return idx;
             }
             static inline index_t cvti(const packed_t& x)
@@ -511,6 +520,10 @@ namespace tachy
             {
                   return _mm_set_pi32(i, i);
             }
+            static inline index_t isetinc(const int i)
+            {
+                  return _mm_setr_pi32(i, i+1);
+            }
             static inline index_t cvti(const packed_t& x)
             {
                   return _mm_cvtpd_pi32(x);
@@ -645,6 +658,10 @@ namespace tachy
             static inline index_t iset1(const int i)
             {
                   return _mm_set1_epi32(i);
+            }
+            static inline index_t isetinc(const int i)
+            {
+                  return _mm_setr_epi32(i, i+1, i+2, i+3);
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -806,6 +823,10 @@ namespace tachy
             static inline index_t iset1(const int i)
             {
                   return _mm_set_epi32(i, i, i, i);
+            }
+            static inline index_t isetinc(const int i)
+            {
+                  return _mm_setr_epi32(i, i+1, i+2, i+3);
             }
             static inline index_t cvti(const packed_t& x)
             {
@@ -984,6 +1005,11 @@ namespace tachy
             static inline index_t iset1(const int i)
             {
                   index_t idx = { i, i, i, i, i, i, i, i };
+                  return idx;
+            }
+            static inline index_t isetinc(const int i)
+            {
+                  index_t idx = { i, i+1, i+2, i+3, i+4, i+5, i+6, i+7 };
                   return idx;
             }
             static inline index_t cvti(const packed_t& x)
