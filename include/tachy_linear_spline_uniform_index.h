@@ -407,9 +407,8 @@ namespace tachy
                               for (int j = 1; j < base_t::_size; ++j)
                                     base_t::_b[k+j] = modulation[j-1][i]*orig_b[j];
 
-                              base_t::_b[k+1] = modulation[0][i]*orig_b[1];
-                              for (int j = 2; j < base_t::_size; ++j)
-                                    base_t::_a[k+j] = base_t::_a[k+j-1] - x[j-2]*(modulation[j-1][i]*orig_b[j] - modulation[j-2][i]*orig_b[j-1]);
+                              for (int j = 1; j < base_t::_size; ++j)
+                                    base_t::_a[k+j] = base_t::_a[k+j-1] - x[j-2]*(base_t::_b[k+j] - base_t::_b[k+j-1]);
                         }
                   }
                   else if (base_t::_init_type == spline_util<NumType>::SPLINE_INIT_FROM_INCR_SLOPES)
@@ -454,7 +453,7 @@ namespace tachy
 
             inline typename arch_traits_t::packed_t apply_packed(int t, const typename arch_traits_t::packed_t& x) const
             {
-                  typename arch_traits_t::index_t i = arch_traits_t::iadd(arch_traits_t::iset1(t*base_t::_size), base_t::get_packed_index(x));
+                  typename arch_traits_t::index_t i = arch_traits_t::iadd(arch_traits_t::imul(arch_traits_t::isetinc(t), arch_traits_t::iset1(base_t::_size)), base_t::get_packed_index(x));
                   return arch_traits_t::fmadd(x, arch_traits_t::gather(base_t::_b, i), arch_traits_t::gather(base_t::_a, i));
             }
 
