@@ -76,7 +76,7 @@ namespace tachy
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
             
-            functor_engine(const std::string& key, const Arg& arg, const Functor& fct, calc_cache<NumType, Level>& cache) :
+            functor_engine(const std::string& key, const tachy_date& start_date, const Arg& arg, const Functor& fct, calc_cache<NumType, Level>& cache) :
                   _cache(cache),
                   _id(key),
                   _engine(nullptr),
@@ -87,7 +87,7 @@ namespace tachy
                   {
                         TACHY_LOG("Cache " << cache.get_id() << ": calculating for " << key);
                         unsigned int sz = arg.size();
-                        _engine = new data_engine_t(sz, NumType(0));
+                        _engine = new data_engine_t(start_date, sz, NumType(0));
                         for (int i = 0; i < sz; ++i)
                               (*_engine)[i] = FcnCallPolicy::call(i, arg, fct);
                   }
