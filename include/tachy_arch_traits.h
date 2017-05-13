@@ -233,11 +233,11 @@ namespace tachy
             {
                   return x / y;
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return std::floor(x);
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return std::ceil(x);
             }
@@ -301,7 +301,7 @@ namespace tachy
             {
                   return is[i];
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return x*y + c;
             }
@@ -346,7 +346,7 @@ namespace tachy
                   index_t idx = { i, i+1, i+2, i+3 };
                   return idx;
             }
-            static inline index_t cvti(const packed_t& x)
+            static inline index_t cvti(const packed_t x)
             {
                   index_t idx = { int(((scalar_t*)(&x))[0] + 0.5f),
                                   int(((scalar_t*)(&x))[1] + 0.5f),
@@ -354,41 +354,41 @@ namespace tachy
                                   int(((scalar_t*)(&x))[3] + 0.5f) };
                   return idx;
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return _mm_setr_ps(std::floor(((scalar_t*)(&x))[0]),
                                      std::floor(((scalar_t*)(&x))[1]),
                                      std::floor(((scalar_t*)(&x))[2]),
                                      std::floor(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return _mm_setr_ps(std::ceil(((scalar_t*)(&x))[0]),
                                      std::ceil(((scalar_t*)(&x))[1]),
                                      std::ceil(((scalar_t*)(&x))[2]),
                                      std::ceil(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t add(const packed_t& x, const packed_t& y)
+            static inline packed_t add(const packed_t x, const packed_t y)
             {
                   return _mm_add_ps(x, y);
             }
-            static inline packed_t sub(const packed_t& x, const packed_t& y)
+            static inline packed_t sub(const packed_t x, const packed_t y)
             {
                   return _mm_sub_ps(x, y);
             }
-            static inline packed_t mul(const packed_t& x, const packed_t& y)
+            static inline packed_t mul(const packed_t x, const packed_t y)
             {
                   return _mm_mul_ps(x, y);
             }
-            static inline packed_t div(const packed_t& x, const packed_t& y)
+            static inline packed_t div(const packed_t x, const packed_t y)
             {
                   return _mm_div_ps(x, y);
             }
-            static inline packed_t max(const packed_t& x, const packed_t& y)
+            static inline packed_t max(const packed_t x, const packed_t y)
             {
                   return _mm_max_ps(x, y);
             }
-            static inline packed_t min(const packed_t& x, const packed_t& y)
+            static inline packed_t min(const packed_t x, const packed_t y)
             {
                   return _mm_min_ps(x, y);
             }
@@ -440,29 +440,29 @@ namespace tachy
                                   std::min(a, ((int*)(&i))[3]) };
                   return idx;
             }
-            static inline packed_t sqrt(const packed_t& x)
+            static inline packed_t sqrt(const packed_t x)
             {
                   return _mm_sqrt_ps(x);
             }
-            static inline packed_t exp(const packed_t& x)
+            static inline packed_t exp(const packed_t x)
             {
                   return _mm_setr_ps(std::exp(((scalar_t*)(&x))[0]),
                                      std::exp(((scalar_t*)(&x))[1]),
                                      std::exp(((scalar_t*)(&x))[2]),
                                      std::exp(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t log(const packed_t& x)
+            static inline packed_t log(const packed_t x)
             {
                   return _mm_setr_ps(std::log(((scalar_t*)(&x))[0]),
                                      std::log(((scalar_t*)(&x))[1]),
                                      std::log(((scalar_t*)(&x))[2]),
                                      std::log(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t abs(const packed_t& x)
+            static inline packed_t abs(const packed_t x)
             {
                   return _mm_max_ps(x, -x);
             }
-            static inline packed_t neg(const packed_t& x)
+            static inline packed_t neg(const packed_t x)
             {
                   return -x;
             }
@@ -481,7 +481,7 @@ namespace tachy
                                   is[((int*)(&i))[3]] };
                   return idx;
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return add(mul(x, y), c);
             }
@@ -524,41 +524,41 @@ namespace tachy
             {
                   return _mm_setr_pi32(i, i+1);
             }
-            static inline index_t cvti(const packed_t& x)
+            static inline index_t cvti(const packed_t x)
             {
                   return _mm_cvtpd_pi32(x);
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return _mm_setr_pd(std::floor(((scalar_t*)(&x))[0]),
                                      std::floor(((scalar_t*)(&x))[1]));
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return _mm_setr_pd(std::ceil(((scalar_t*)(&x))[0]),
                                      std::ceil(((scalar_t*)(&x))[1]));
             }
-            static inline packed_t add(const packed_t& x, const packed_t& y)
+            static inline packed_t add(const packed_t x, const packed_t y)
             {
                   return _mm_add_pd(x, y);
             }
-            static inline packed_t sub(const packed_t& x, const packed_t& y)
+            static inline packed_t sub(const packed_t x, const packed_t y)
             {
                   return _mm_sub_pd(x, y);
             }
-            static inline packed_t mul(const packed_t& x, const packed_t& y)
+            static inline packed_t mul(const packed_t x, const packed_t y)
             {
                   return _mm_mul_pd(x, y);
             }
-            static inline packed_t div(const packed_t& x, const packed_t& y)
+            static inline packed_t div(const packed_t x, const packed_t y)
             {
                   return _mm_div_pd(x, y);
             }
-            static inline packed_t max(const packed_t& x, const packed_t& y)
+            static inline packed_t max(const packed_t x, const packed_t y)
             {
                   return _mm_max_pd(x, y);
             }
-            static inline packed_t min(const packed_t& x, const packed_t& y)
+            static inline packed_t min(const packed_t x, const packed_t y)
             {
                   return _mm_min_pd(x, y);
             }
@@ -590,25 +590,25 @@ namespace tachy
                   return _mm_setr_pi32(std::min(a, ((int*)(&i))[0]),
                                        std::min(a, ((int*)(&i))[1]));
             }
-            static inline packed_t sqrt(const packed_t& x)
+            static inline packed_t sqrt(const packed_t x)
             {
                   return _mm_sqrt_pd(x);
             }
-            static inline packed_t exp(const packed_t& x)
+            static inline packed_t exp(const packed_t x)
             {
                   return _mm_setr_pd(std::exp(((scalar_t*)(&x))[0]),
                                      std::exp(((scalar_t*)(&x))[1]));
             }
-            static inline packed_t log(const packed_t& x)
+            static inline packed_t log(const packed_t x)
             {
                   return _mm_setr_pd(std::log(((scalar_t*)(&x))[0]),
                                      std::log(((scalar_t*)(&x))[1]));
             }
-            static inline packed_t abs(const packed_t& x)
+            static inline packed_t abs(const packed_t x)
             {
                   return _mm_max_pd(x, -x);
             }
-            static inline packed_t neg(const packed_t& x)
+            static inline packed_t neg(const packed_t x)
             {
                   return -x;
             }
@@ -620,7 +620,7 @@ namespace tachy
             {
                   return _mm_setr_pi32(is[((int*)(&i))[0]], is[((int*)(&i))[1]]);
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return add(mul(x, y), c);
             }
@@ -663,45 +663,45 @@ namespace tachy
             {
                   return _mm_setr_epi32(i, i+1, i+2, i+3);
             }
-            static inline index_t cvti(const packed_t& x)
+            static inline index_t cvti(const packed_t x)
             {
                   return _mm_cvtps_epi32(x);
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return _mm_setr_ps(std::floor(((scalar_t*)(&x))[0]),
                                      std::floor(((scalar_t*)(&x))[1]),
                                      std::floor(((scalar_t*)(&x))[2]),
                                      std::floor(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return _mm_setr_ps(std::ceil(((scalar_t*)(&x))[0]),
                                      std::ceil(((scalar_t*)(&x))[1]),
                                      std::ceil(((scalar_t*)(&x))[2]),
                                      std::ceil(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t add(const packed_t& x, const packed_t& y)
+            static inline packed_t add(const packed_t x, const packed_t y)
             {
                   return _mm_add_ps(x, y);
             }
-            static inline packed_t sub(const packed_t& x, const packed_t& y)
+            static inline packed_t sub(const packed_t x, const packed_t y)
             {
                   return _mm_sub_ps(x, y);
             }
-            static inline packed_t mul(const packed_t& x, const packed_t& y)
+            static inline packed_t mul(const packed_t x, const packed_t y)
             {
                   return _mm_mul_ps(x, y);
             }
-            static inline packed_t div(const packed_t& x, const packed_t& y)
+            static inline packed_t div(const packed_t x, const packed_t y)
             {
                   return _mm_div_ps(x, y);
             }
-            static inline packed_t max(const packed_t& x, const packed_t& y)
+            static inline packed_t max(const packed_t x, const packed_t y)
             {
                   return _mm_max_ps(x, y);
             }
-            static inline packed_t min(const packed_t& x, const packed_t& y)
+            static inline packed_t min(const packed_t x, const packed_t y)
             {
                   return _mm_min_ps(x, y);
             }
@@ -745,29 +745,29 @@ namespace tachy
                                         std::min(a, ((int*)(&i))[2]),
                                         std::min(a, ((int*)(&i))[3]));
             }
-            static inline packed_t sqrt(const packed_t& x)
+            static inline packed_t sqrt(const packed_t x)
             {
                   return _mm_sqrt_ps(x);
             }
-            static inline packed_t exp(const packed_t& x)
+            static inline packed_t exp(const packed_t x)
             {
                   return _mm_setr_ps(std::exp(((scalar_t*)(&x))[0]),
                                      std::exp(((scalar_t*)(&x))[1]),
                                      std::exp(((scalar_t*)(&x))[2]),
                                      std::exp(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t log(const packed_t& x)
+            static inline packed_t log(const packed_t x)
             {
                   return _mm_setr_ps(std::log(((scalar_t*)(&x))[0]),
                                      std::log(((scalar_t*)(&x))[1]),
                                      std::log(((scalar_t*)(&x))[2]),
                                      std::log(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t abs(const packed_t& x)
+            static inline packed_t abs(const packed_t x)
             {
                   return _mm_max_ps(x, -x);
             }
-            static inline packed_t neg(const packed_t& x)
+            static inline packed_t neg(const packed_t x)
             {
                   return -x;
             }
@@ -785,7 +785,7 @@ namespace tachy
                                         is[((int*)(&i))[2]],
                                         is[((int*)(&i))[3]]);
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return add(mul(x, y), c);
             }
@@ -828,39 +828,39 @@ namespace tachy
             {
                   return _mm_setr_epi32(i, i+1, i+2, i+3);
             }
-            static inline index_t cvti(const packed_t& x)
+            static inline index_t cvti(const packed_t x)
             {
                   return _mm256_cvtpd_epi32(x);
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return _mm256_floor_pd(x);
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return _mm256_ceil_pd(x);
             }
-            static inline packed_t add(const packed_t& x, const packed_t& y)
+            static inline packed_t add(const packed_t x, const packed_t y)
             {
                   return _mm256_add_pd(x, y);
             }
-            static inline packed_t sub(const packed_t& x, const packed_t& y)
+            static inline packed_t sub(const packed_t x, const packed_t y)
             {
                   return _mm256_sub_pd(x, y);
             }
-            static inline packed_t mul(const packed_t& x, const packed_t& y)
+            static inline packed_t mul(const packed_t x, const packed_t y)
             {
                   return _mm256_mul_pd(x, y);
             }
-            static inline packed_t div(const packed_t& x, const packed_t& y)
+            static inline packed_t div(const packed_t x, const packed_t y)
             {
                   return _mm256_div_pd(x, y);
             }
-            static inline packed_t max(const packed_t& x, const packed_t& y)
+            static inline packed_t max(const packed_t x, const packed_t y)
             {
                   return _mm256_max_pd(x, y);
             }
-            static inline packed_t min(const packed_t& x, const packed_t& y)
+            static inline packed_t min(const packed_t x, const packed_t y)
             {
                   return _mm256_min_pd(x, y);
             }
@@ -891,29 +891,29 @@ namespace tachy
             {
                   return _mm_min_epi32(iset1(a), i);
             }
-            static inline packed_t sqrt(const packed_t& x)
+            static inline packed_t sqrt(const packed_t x)
             {
                   return _mm256_sqrt_pd(x);
             }
-            static inline packed_t exp(const packed_t& x)
+            static inline packed_t exp(const packed_t x)
             {
                   return _mm256_setr_pd(std::exp(((scalar_t*)(&x))[0]),
                                         std::exp(((scalar_t*)(&x))[1]),
                                         std::exp(((scalar_t*)(&x))[2]),
                                         std::exp(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t log(const packed_t& x)
+            static inline packed_t log(const packed_t x)
             {
                   return _mm256_setr_pd(std::log(((scalar_t*)(&x))[0]),
                                         std::log(((scalar_t*)(&x))[1]),
                                         std::log(((scalar_t*)(&x))[2]),
                                         std::log(((scalar_t*)(&x))[3]));
             }
-            static inline packed_t abs(const packed_t& x)
+            static inline packed_t abs(const packed_t x)
             {
                   return _mm256_max_pd(x, -x);
             }
-            static inline packed_t neg(const packed_t& x)
+            static inline packed_t neg(const packed_t x)
             {
                   return -x;
             }
@@ -931,7 +931,7 @@ namespace tachy
                                         is[((int*)(&i))[2]],
                                         is[((int*)(&i))[3]]);
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return add(mul(x, y), c);
             }
@@ -956,7 +956,7 @@ namespace tachy
       template <> struct arch_traits<double, ARCH_IA_FMA> : public arch_traits<double, ARCH_IA_AVX>
       {
 #if defined(__FMA__)
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return _mm256_fmadd_pd(x, y, c);
             }
@@ -966,7 +966,7 @@ namespace tachy
       template <> struct arch_traits<double, ARCH_IA_FMAVX2> : public arch_traits<double, ARCH_IA_AVX2>
       {
 #if defined(__FMA__)
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return _mm256_fmadd_pd(x, y, c);
             }
@@ -1012,7 +1012,7 @@ namespace tachy
                   index_t idx = { i, i+1, i+2, i+3, i+4, i+5, i+6, i+7 };
                   return idx;
             }
-            static inline index_t cvti(const packed_t& x)
+            static inline index_t cvti(const packed_t x)
             {
                   index_t idx = { int(((scalar_t*)(&x))[0] + 0.5f),
                                   int(((scalar_t*)(&x))[1] + 0.5f),
@@ -1024,35 +1024,35 @@ namespace tachy
                                   int(((scalar_t*)(&x))[7] + 0.5f) };
                   return idx;
             }
-            static inline packed_t floor(const packed_t& x)
+            static inline packed_t floor(const packed_t x)
             {
                   return _mm256_floor_ps(x);
             }
-            static inline packed_t ceil(const packed_t& x)
+            static inline packed_t ceil(const packed_t x)
             {
                   return _mm256_ceil_ps(x);
             }
-            static inline packed_t add(const packed_t& x, const packed_t& y)
+            static inline packed_t add(const packed_t x, const packed_t y)
             {
                   return _mm256_add_ps(x, y);
             }
-            static inline packed_t sub(const packed_t& x, const packed_t& y)
+            static inline packed_t sub(const packed_t x, const packed_t y)
             {
                   return _mm256_sub_ps(x, y);
             }
-            static inline packed_t mul(const packed_t& x, const packed_t& y)
+            static inline packed_t mul(const packed_t x, const packed_t y)
             {
                   return _mm256_mul_ps(x, y);
             }
-            static inline packed_t div(const packed_t& x, const packed_t& y)
+            static inline packed_t div(const packed_t x, const packed_t y)
             {
                   return _mm256_div_ps(x, y);
             }
-            static inline packed_t max(const packed_t& x, const packed_t& y)
+            static inline packed_t max(const packed_t x, const packed_t y)
             {
                   return _mm256_max_ps(x, y);
             }
-            static inline packed_t min(const packed_t& x, const packed_t& y)
+            static inline packed_t min(const packed_t x, const packed_t y)
             {
                   return _mm256_min_ps(x, y);
             }
@@ -1128,11 +1128,11 @@ namespace tachy
                                   std::min(a, ((int*)(&i))[7]) };
                   return idx;
             }
-            static inline packed_t sqrt(const packed_t& x)
+            static inline packed_t sqrt(const packed_t x)
             {
                   return _mm256_sqrt_ps(x);
             }
-            static inline packed_t exp(const packed_t& x)
+            static inline packed_t exp(const packed_t x)
             {
                   return _mm256_setr_ps(std::exp(((scalar_t*)(&x))[0]),
                                         std::exp(((scalar_t*)(&x))[1]),
@@ -1143,7 +1143,7 @@ namespace tachy
                                         std::exp(((scalar_t*)(&x))[6]),
                                         std::exp(((scalar_t*)(&x))[7]));
             }
-            static inline packed_t log(const packed_t& x)
+            static inline packed_t log(const packed_t x)
             {
                   return _mm256_setr_ps(std::log(((scalar_t*)(&x))[0]),
                                         std::log(((scalar_t*)(&x))[1]),
@@ -1154,11 +1154,11 @@ namespace tachy
                                         std::log(((scalar_t*)(&x))[6]),
                                         std::log(((scalar_t*)(&x))[7]));
             }
-            static inline packed_t abs(const packed_t& x)
+            static inline packed_t abs(const packed_t x)
             {
                   return _mm256_max_ps(x, -x);
             }
-            static inline packed_t neg(const packed_t& x)
+            static inline packed_t neg(const packed_t x)
             {
                   return -x;
             }
@@ -1185,7 +1185,7 @@ namespace tachy
                                   is[((int*)(&i))[7]] };
                   return idx;
             }
-            static inline packed_t fmadd(const packed_t& x, const packed_t& y, const packed_t& c)
+            static inline packed_t fmadd(const packed_t x, const packed_t y, const packed_t c)
             {
                   return add(mul(x, y), c);
             }

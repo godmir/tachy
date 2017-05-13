@@ -81,11 +81,6 @@ namespace tachy
                   return _engine.get_packed(idx);
             }
 
-            typename arch_traits_t::packed_t& get_packed(int idx)
-            {
-                  return _engine.get_packed(idx);
-            }
-
             NumType operator[] (int idx) const
             {
                   return _engine[idx];
@@ -338,14 +333,22 @@ namespace tachy
                   }
             }
 
+            void reset(const tachy_date& new_start_date, unsigned int new_size)
+            {
+                  if (_own_engine)
+                        _engine->reset(new_start_date, new_size);
+                  else
+                        TACHY_THROW("Trying to reset a previously cached vector " << _id);
+            }
+            
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return *(typename arch_traits_t::packed_t*)(&(*_engine)[idx]);
+                  return _engine->get_packed(idx); // *(typename arch_traits_t::packed_t*)(&(*_engine)[idx]);
             }
 
-            typename arch_traits_t::packed_t& get_packed(int idx)
+            void set_packed(int idx, typename arch_traits_t::packed_t& value)
             {
-                  return *(typename arch_traits_t::packed_t*)(&(*_engine)[idx]);
+                  _engine->set_packed(idx, value); // *(typename arch_traits_t::packed_t*)(&(*_engine)[idx]);
             }
 
             NumType operator[] (int idx) const
@@ -516,11 +519,6 @@ namespace tachy
             }
 
             typename arch_traits_t::packed_t get_packed(int idx) const
-            {
-                  return _engine.get_packed(idx);
-            }
-
-            typename arch_traits_t::packed_t& get_packed(int idx)
             {
                   return _engine.get_packed(idx);
             }
@@ -705,14 +703,14 @@ namespace tachy
                   if (offset_tgt == offset_src) // both are 0
                   {
                         for ( ; i < n_elems; i += arch_traits_t::stride)
-                              get_packed(i_tgt + i) = other.get_packed(i_src + i);
+                              set_packed(i_tgt + i, other.get_packed(i_src + i));
                   }
                   else if (offset_tgt > 0) // i_src == 0 and offset_src == 0
                   {
                         int i_tgt_adj = i_tgt - offset_tgt + arch_traits_t::stride;
                         int n_max = n_elems - arch_traits_t::stride;
                         for ( ; i < n_max; i += arch_traits_t::stride)
-                              get_packed(i_tgt_adj + i) = other.get_packed(i);
+                              set_packed(i_tgt_adj + i, other.get_packed(i));
                         for (int j = 0; j < n_max; ++j)
                               _engine[i_tgt + j] = _engine[i_tgt_adj + j];
                   }
@@ -720,7 +718,7 @@ namespace tachy
                   {
                         int i_src_adj = i_src - offset_src;
                         for (i = arch_traits_t::stride; i < n_elems; i += arch_traits_t::stride)
-                              get_packed(i) = other.get_packed(i_src_adj + i);
+                              set_packed(i, other.get_packed(i_src_adj + i));
                         for (int j = 0, j_max = n_elems - arch_traits_t::stride; j < j_max; ++j)
                               _engine[offset_src + j] = _engine[arch_traits_t::stride + j];
                         for (int j = 0; j < offset_src; ++j)
@@ -735,14 +733,19 @@ namespace tachy
                   return *this;
             }
 
+            void reset(const tachy_date& new_start_date, unsigned int new_size)
+            {
+                  _engine.reset(new_start_date, new_size);
+            }
+            
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return *(typename arch_traits_t::packed_t*)(&_engine[idx]);
+                  return _engine.get_packed(idx); // *(typename arch_traits_t::packed_t*)(&_engine[idx]);
             }
 
-            typename arch_traits_t::packed_t& get_packed(int idx)
+            void set_packed(int idx, typename arch_traits_t::packed_t value)
             {
-                  return *(typename arch_traits_t::packed_t*)(&_engine[idx]);
+                  _engine.set_packed(idx, value); // return *(typename arch_traits_t::packed_t*)(&_engine[idx]);
             }
 
             NumType operator[] (int idx) const

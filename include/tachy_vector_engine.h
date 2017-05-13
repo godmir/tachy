@@ -51,9 +51,6 @@ namespace tachy
             {
                   if (&other != this)
                   {
-                        // doing the right thing trumps doing it fast:
-                        // hence we're copying everything here
-                        // assignment that only copies projection - not history - can be done with a view/proxy object
                         _data = other._data;
                         _start_date = other._start_date;
                   }
@@ -74,6 +71,11 @@ namespace tachy
                   return arch_traits_t::loadu(&_data[idx]);
             }
 
+            void set_packed(int idx, typename arch_traits_t::packed_t value)
+            {
+                  *(typename arch_traits_t::packed_t*)(&_data[idx]) = value;
+            }
+      
             NumType operator[] (int idx) const
             {
                   return _data[idx];
@@ -144,21 +146,25 @@ namespace tachy
                   return _start_date;
             }
 
-            void set_start_date(const tachy_date& start_date)
+            void reset(const tachy_date& new_start_date, unsigned int new_size)
             {
-                  int diff = start_date - _start_date;
+                  int diff = new_start_date - _start_date;
                   if (diff > 0) // new date is later, chop off some history
                   {
-                        for (int i = diff, i_max = _data.size(); i < i_max; ++i)
+                        // ... by moving things back
+                        for (int i = diff, i_max = new_size; i < i_max; ++i)
                               _data[i-diff] = _data[i];
-                        _data.resize(_data.size() - diff, NumType(0));
+                        // and chopping off the tail
+                        _data.resize(new_size, NumType(0));
                   }
                   else if (diff < 0) // new date is earlier - add 0's
                   {
                         diff = -diff; // for clarity
-                        _data.resize(_data.size() + diff, NumType(0));
-                        for (int i = _data.size(); i > diff; --i)
+                        _data.resize(new_size, NumType(0));
+                        for (int i = new_size-1; i >= diff; --i)
                               _data[i] = _data[i-diff];
+                        for (int i = 0; i < diff; ++i)
+                              _data[i] = NumType(0);
                   }
             }
             
