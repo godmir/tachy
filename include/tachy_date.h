@@ -10,9 +10,9 @@ namespace tachy
       public:
             static tachy_date min_date()
             {
-                  return tachy_date(1001);
+                  return tachy_date(101);
             }
-            
+
             explicit tachy_date(unsigned int dt) throw(tachy::exception)
                   : _y(dt/100),
                     _m(dt%100)
@@ -83,7 +83,7 @@ namespace tachy
                   *this += 1;
                   return dt;
             }
-            
+
             int year() const
             {
                   return _y;
@@ -109,7 +109,7 @@ namespace tachy
             tachy_date dt_new(dt);
             return dt_new += months;
       }
-      
+
       tachy_date operator- (const tachy_date& dt, int months)
       {
             tachy_date dt_new(dt);

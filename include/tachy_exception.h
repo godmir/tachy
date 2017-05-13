@@ -1,5 +1,5 @@
-#ifndef TACHY_EXCEPTION_H
-#define TACHY_EXCEPTION_H
+#if !defined(TACHY_EXCEPTION_H__INCLUDED)
+#define TACHY_EXCEPTION_H__INCLUDED
 
 #include <exception>
 #include <string>
@@ -33,4 +33,4 @@ namespace tachy
             std::string _what;
       };
 }
-#endif // TACHY_EXCEPTION_H
+#endif // TACHY_EXCEPTION_H__INCLUDED

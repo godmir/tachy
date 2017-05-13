@@ -1,5 +1,5 @@
-#ifndef TACHY_UTIL_H
-#define TACHY_UTIL_H
+#if !defined(TACHY_UTIL_H__INCLUDED)
+#define TACHY_UTIL_H__INCLUDED
 
 #include <sstream>
 #include <exception>
@@ -17,4 +17,4 @@
 
 #define TACHY_THROW(x) { std::ostringstream s; s << x; throw tachy::exception(s.str(), __LINE__, __FILE__); }
 
-#endif // TACHY_UTIL_H
+#endif // TACHY_UTIL_H__INCLUDED

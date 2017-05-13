@@ -1,5 +1,5 @@
-#ifndef TACHY_CACHEABLE_H
-#define TACHY_CACHEABLE_H
+#if !defined(TACHY_CACHEABLE_H__INCLUDED)
+#define TACHY_CACHEABLE_H__INCLUDED
 
 namespace tachy
 {
@@ -25,4 +25,4 @@ namespace tachy
       };
 }
 
-#endif // TACHY_CACHEABLE_H
+#endif // TACHY_CACHEABLE_H__INCLUDED

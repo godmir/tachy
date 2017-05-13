@@ -1,5 +1,5 @@
-#if !defined(TACHY_VECTOR_ENGINE_H)
-#define TACHY_VECTOR_ENGINE_H
+#if !defined(TACHY_VECTOR_ENGINE_H__INCLUDED)
+#define TACHY_VECTOR_ENGINE_H__INCLUDED
 
 #include <vector>
 
@@ -168,4 +168,4 @@ namespace tachy
       };
 }
 
-#endif // TACHY_VECTOR_ENGINE_H
+#endif // TACHY_VECTOR_ENGINE_H__INCLUDED

@@ -1,4 +1,4 @@
-#if !defined(TACHY_H__INCLDUED)
+#if !defined(TACHY_H__INCLUDED)
 #define TACHY_H__INCLUDED 1
 
 #include "tachy_calc_cache.h"

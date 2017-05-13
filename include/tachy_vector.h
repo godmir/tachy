@@ -29,7 +29,7 @@ namespace tachy
             typedef calc_vector<NumType, DataEngine, Level> self_t;
 
             // no default c'tor
-            calc_vector(const std::string& id, const tachy_date& date, const DataEngine& eng, cache_t& cache) :
+            calc_vector(const std::string& id, const tachy_date& /* unused */, const DataEngine& eng, cache_t& cache) :
                   _id(id),
                   _engine(eng),
                   _cache(cache)
@@ -150,7 +150,7 @@ namespace tachy
             void debug_print(std::ostream& to) const
             {
                   to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], anchor date = " << get_start_date() << "\n";
-                  for (int i = 0; i < _engine.size(); ++i)
+                  for (int i = 0; i < size(); ++i)
                         to << _engine[i] << "\n";
                   to.flush();
             }
@@ -228,7 +228,7 @@ namespace tachy
                   if (k == _cache.end())
                   {
                         unsigned int sz = other.size();
-                        _engine = new data_engine_t(tachy_date(other.get_start_date()), sz);
+                        _engine = new data_engine_t(other.get_start_date(), sz);
                         // in a c'tor everything is copied, including history
                         for (int i = 0; i < sz; ++i)
                               (*_engine)[i] = other[i];
@@ -421,8 +421,8 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << get_start_date().as_uint() << ", num hist = " << _engine->getFirst() << "\n";
-                  for (int i = _engine->get_first(), i_last = _engine->size(); i < i_last; ++i)
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << get_start_date().as_uint() << "\n";
+                  for (int i = 0, i_last = size(); i < i_last; ++i)
                         to << (*_engine)[i] << "\n";
                   to.flush();
             }
@@ -584,7 +584,7 @@ namespace tachy
             void debug_print(std::ostream& to) const
             {
                   to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << get_start_date().as_uint() << "\n";
-                  for (int i = 0; i < _engine.size(); ++i)
+                  for (int i = 0; i < size(); ++i)
                         to << _engine[i] << "\n";
                   to.flush();
             }
@@ -758,7 +758,7 @@ namespace tachy
             const calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0> operator[](const time_shift& shift) const
             {
                   std::string hashed_id = cache().get_hash_key(std::string("LAGCK ") + _id);
-                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, _engine.get_start_date(), lagged_engine<NumType, data_engine_t, true>(_engine, -shift.get_time_shift()));
+                  return calc_vector<NumType, lagged_engine<NumType, data_engine_t, true>, 0>(hashed_id, get_start_date(), lagged_engine<NumType, data_engine_t, true>(_engine, -shift.get_time_shift()));
             }
       
             const std::string& get_id() const
@@ -803,8 +803,8 @@ namespace tachy
 
             void debug_print(std::ostream& to) const
             {
-                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << get_start_date().as_uint() << ", num hist = " << _engine.get_num_hist() << "\n{ ";
-                  for (int i = -_engine.get_num_hist(), i_last = _engine.size()-1; i < i_last; ++i)
+                  to << "calc_vector<" << cache_t::cache_level << ">[" << _id << "], start date = " << get_start_date().as_uint() << "\n{ ";
+                  for (int i = 0, i_last = size()-1; i < i_last; ++i)
                         to << _engine[i] << ", ";
                   if (_engine.size() > 0)
                         to << _engine.back();
