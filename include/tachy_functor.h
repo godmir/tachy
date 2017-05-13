@@ -447,7 +447,7 @@ namespace tachy
             typedef functor_engine<NumType, Engine, FUNC_TYPE, Level> engine_t; \
             FUNC_TYPE bf(param); \
             std::string hashed_id = x.cache().get_hash_key(bf.get_id() + scalar<NumType>::get_id(param) + std::string("_") + x.get_id()); \
-            engine_t eng(hashed_id, x.engine(), bf, x.cache()); \
+            engine_t eng(hashed_id, x.get_start_date(), x.engine(), bf, x.cache()); \
             return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache()); \
       } \
       \
@@ -483,7 +483,7 @@ namespace tachy
             typedef functor_engine<NumType, Engine, min_max_functor<NumType>, Level> engine_t;
             min_max_functor<NumType> mmf(lower, upper);
             std::string hashed_id = x.cache().get_hash_key(mmf.get_id() + scalar<NumType>::get_id(lower) + std::string("_") + scalar<NumType>::get_id(upper) + std::string("_") + x.get_id());
-            engine_t eng(hashed_id, x.engine(), mmf, x.cache());
+            engine_t eng(hashed_id, x.get_start_date(), x.engine(), mmf, x.cache());
             return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
       }
 
