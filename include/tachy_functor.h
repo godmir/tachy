@@ -133,6 +133,11 @@ namespace tachy
                   return _engine->size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _engine->get_start_date();
+            }
+            
       protected:
             cache_t& _cache;
             std::string _id;
@@ -175,6 +180,21 @@ namespace tachy
                   return _arg.size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _arg.get_start_date();
+            }
+            
+            const Arg& arg() const
+            {
+                  return _arg;
+            }
+
+            const typename FunctorObjPolicy::held_const_functor_obj_t fct() const
+            {
+                  return _fct;
+            }
+            
       protected:
             typename data_engine_traits<Arg>::ref_type_t _arg;
 
@@ -235,6 +255,11 @@ namespace tachy
                   return _arg.size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _arg.get_start_date();
+            }
+            
             const functor_engine<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy>& get_cached_engine() const
             {
                   if (0 == _cached_vector)
@@ -329,6 +354,11 @@ namespace tachy
                   return _key;
             }
 
+            inline NumType get_upper_bound() const
+            {
+                  return _upper_bound;
+            }
+            
       private:
             const std::string _key;
             const NumType _upper_bound;
@@ -362,6 +392,11 @@ namespace tachy
                   return _key;
             }
 
+            inline NumType get_lower_bound() const
+            {
+                  return _lower_bound;
+            }
+            
       private:
             const std::string _key;
             const NumType _lower_bound;
@@ -461,6 +496,100 @@ namespace tachy
             engine_t eng(x.engine(), mmf);
             return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), eng, x.cache());
       }
+
+      
+      template <typename NumType, class Func>
+      struct half_line_functor
+      {
+            typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
+            typedef typename arch_traits_t::packed_t packed_t;
+
+            template <class Res, class Op>
+            inline void apply(Res& y, const Op& x) const
+            {
+                  unsigned int sz = y.size();
+                  for (unsigned int i = 0; i < sz; ++i)
+                        y[i] = _f(x[i]);
+            }
+
+            inline packed_t apply_packed(const packed_t& x) const
+            {
+                  typename arch_traits_t::packed_t res;
+                  for (unsigned int i = 0; i < arch_traits_t::stride; ++i)
+                        ((NumType*)&res)[i] = _f(((const NumType*)&x)[i]);
+                  return res;
+            }
+
+            inline NumType apply(NumType x) const
+            {
+                  return _f(x);
+            }
+
+            inline NumType operator()(NumType x) const
+            {
+                  return _f(x);
+            }
+            
+            explicit half_line_functor(NumType limit)
+                  : _f(limit)
+            {}
+
+      private:
+            Func _f;
+      };
+
+      template <typename NumType>
+      struct exp_pos_arg
+      {
+            inline NumType operator()(NumType x) const
+            {
+                  return x > _x0 ? std::exp(x) : _y0;
+            }
+
+            explicit exp_pos_arg(NumType limit) :
+                  _x0(limit),
+                  _y0(std::exp(limit))
+            {}
+                  
+      private:
+            const NumType _x0;
+            const NumType _y0;
+      };
+
+      template <typename NumType>
+      struct exp_neg_arg
+      {
+            inline NumType apply(NumType x) const
+            {
+                  return x < _x0 ? std::exp(x) : _y0;
+            }
+
+            explicit exp_neg_arg(NumType limit) :
+                  _x0(limit),
+                  _y0(std::exp(limit))
+            {}
+
+      private:
+            const NumType _x0;
+            const NumType _y0;
+      };
+
+      // for now - only uncached cases, since they are the most performance sensitive
+#define TACHY_HALF_LINE_FUNCTOR_PACK(FILTER, FUNC, GET_BOUND)  \
+      template <typename NumType, class Engine> \
+      calc_vector<NumType, functor_engine<NumType, Engine, half_line_functor<NumType, FUNC<NumType> >, 0>, 0> exp(const calc_vector<NumType, functor_engine<NumType, Engine, FILTER<NumType>, 0>, 0>& x) \
+      { \
+            typedef calc_cache<NumType, 0> cache_t; \
+            typedef functor_engine<NumType, Engine, half_line_functor<NumType, FUNC<NumType> >, 0> engine_t; \
+            typedef half_line_functor<NumType, FUNC<NumType> > func_t; \
+            std::string hashed_id = cache_t::get_dummy_key(); \
+            return calc_vector<NumType, engine_t, 0>(hashed_id, x.get_start_date(), engine_t(x.engine().arg(), func_t(x.engine().fct().GET_BOUND())), x.cache()); \
+      }
+// end of TACHY_HALF_LINE_FUNCTOR_PACK
+
+      TACHY_HALF_LINE_FUNCTOR_PACK(min_functor, exp_neg_arg, get_upper_bound)
+      TACHY_HALF_LINE_FUNCTOR_PACK(max_functor, exp_pos_arg, get_lower_bound)
+
 }
 
 #endif // TACHY_FUNCTOR_H__INCLUDED

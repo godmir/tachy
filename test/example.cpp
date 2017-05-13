@@ -254,7 +254,7 @@ public:
       ~Pool()
       {}
 
-      const CachedVector_t getPmts(const PmtCalc& pmtCalc, int projDate)
+      const CachedVector_t getPmts(const PmtCalc& pmtCalc, const tachy::tachy_date& projDate)
       {
             const char* key = "pmts";
             if (false == this->has_key(key))
@@ -265,7 +265,7 @@ public:
             return CachedVector_t(key, projDate, *this);
       }
 
-      const CachedVector_t getAmort(const PmtCalc& pmtCalc, int projDate)
+      const CachedVector_t getAmort(const PmtCalc& pmtCalc, const tachy::tachy_date& projDate)
       {
             const char* key = "amort";
             if (false == this->has_key(key))
@@ -287,18 +287,18 @@ typedef tachy::calc_vector<real_t, tachy::vector_engine<real_t>, 0> CVec0_t;
 typedef tachy::calc_vector<real_t, tachy::vector_engine<real_t>, 2> CVec2_t;
 typedef tachy::calc_vector<real_t, tachy::iota_engine<real_t>, 2> AgeVec2_t;
 
-void runAll(const Model& model, const vector<Pool*>& collateral, int projDate, int numPaths)
+void runAll(const Model& model, const vector<Pool*>& collateral, const tachy::tachy_date& projDate, int numPaths)
 {
       const unsigned int nProj = model.nProj;
 
       PmtCalc pmtCalc(120);
+
+      int numHist = 360;
+      CVec0_t mtg("mtgRate", projDate - numHist, nProj);
+      for (int i = 0; i < numHist; ++i)
+            mtg[i] = 4.51;
       
-      CVec0_t mtg("mtgRate", projDate, nProj);
-
       char pathKey[8];
-
-      vector<real_t> mtgHist(360, 4.51);
-      mtg.set_history(mtgHist);
 
       long unsigned int ut = 0;
       struct timeval tv;
@@ -350,7 +350,7 @@ void runAll(const Model& model, const vector<Pool*>& collateral, int projDate, i
                   for (unsigned int i = 1; i < nProj; ++i)
                         burnout[i] = 0.98*burnout[i-1] + max(0.0, min(pmtRatio1[i], 0.2));
 #endif
-                  AgeVec2_t wala("wala", projDate, AgeVec2_t::data_engine_t(p->wala, p->wam), *p);
+                  AgeVec2_t wala("wala", projDate, AgeVec2_t::data_engine_t(projDate, p->wala, p->wam), *p);
 
                   std::vector<CVec2_t> modulation;
                   modulation.reserve(model.baseRefi.get_num_nodes());
@@ -412,7 +412,7 @@ int main(int argc, char** argv)
 
       Model model(projDate, nProj);
       
-      runAll(model, collateral, projDate, numPaths);
+      runAll(model, collateral, tachy::tachy_date(projDate/100), numPaths);
       
       for (vector<Pool*>::iterator i = collateral.begin(); i != collateral.end(); ++i)
             delete *i;

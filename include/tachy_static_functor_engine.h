@@ -57,6 +57,11 @@ namespace tachy
                   return _res->size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _res->get_start_date();
+            }
+            
       protected:
             std::string             _key; // for debug only
             vector_engine<NumType>* _res;
@@ -96,6 +101,11 @@ namespace tachy
                   return _op.size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _op.get_start_date();
+            }
+            
       protected:
             typename data_engine_traits<Op>::ref_type_t _op;
 
@@ -150,6 +160,11 @@ namespace tachy
                   return _op.size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _op.get_start_date();
+            }
+            
             const static_functor_engine<NumType, Op, StaticFunctor, Level>& get_cached_engine() const
             {
                   if (0 == _cached_vector)

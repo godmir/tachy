@@ -70,6 +70,11 @@ namespace tachy
                   return 0;
             }
 
+            tachy_date get_start_date() const
+            {
+                  return tachy_date::min_date();
+            }
+            
       protected:
             typename arch_traits_t::packed_t _x;
 

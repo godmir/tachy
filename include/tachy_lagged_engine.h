@@ -3,6 +3,7 @@
 
 #include "tachy_arch_traits.h"
 #include "tachy_calc_cache.h"
+#include "tachy_date.h"
 
 namespace tachy
 {
@@ -38,7 +39,7 @@ namespace tachy
 
             NumType operator[] (int idx) const
             {
-                  return _op[lag_checking_policy<Checked>::lag(-_op.get_num_hist(), idx, _lag)]; // checking upper boundary is left for the operand itself
+                  return _op[lag_checking_policy<Checked>::lag(0, idx, _lag)]; // checking upper boundary is left for the operand itself
             }
 
             unsigned int size() const
@@ -46,9 +47,14 @@ namespace tachy
                   return _op.size();
             }
 
+            tachy_date get_start_date() const
+            {
+                  return _op.get_start_date();
+            }
+            
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return _op.get_packed(lag_checking_policy<Checked>::lag(-_op.get_num_hist(), idx, _lag));
+                  return _op.get_packed(lag_checking_policy<Checked>::lag(0, idx, _lag));
             }
 
       protected:

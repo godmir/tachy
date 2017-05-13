@@ -21,6 +21,62 @@
 #include "tachy_linear_spline_uniform.h"
 #include "tachy_linear_spline_uniform_index.h"
 #include "tachy_mod_linear_spline_uniform.h"
+#include "tachy_date.h"
+
+class tachy_date_test : public CxxTest::TestSuite
+{
+public:
+
+      void test_dates_valid()
+      {
+            TS_TRACE("test_dates_valid");
+
+            int dt[] = { 1001, 197810, 201705, 210001, 0, 15, 25000001 };
+            TS_ASSERT(tachy::tachy_date(dt[0]).is_valid());
+            TS_ASSERT(tachy::tachy_date(dt[1]).is_valid());
+            TS_ASSERT(tachy::tachy_date(dt[2]).is_valid());
+            TS_ASSERT(tachy::tachy_date(dt[3]).is_valid());
+            TS_ASSERT_THROWS(not tachy::tachy_date(dt[4]).is_valid(), tachy::exception);
+            TS_ASSERT_THROWS(not tachy::tachy_date(dt[5]).is_valid(), tachy::exception);
+            TS_ASSERT_THROWS(not tachy::tachy_date(dt[6]).is_valid(), tachy::exception);
+      }
+
+      void test_dates_diff()
+      {
+            TS_TRACE("test_dates_diff");
+
+            tachy::tachy_date dt1[] = { tachy::tachy_date(197810),
+                                        tachy::tachy_date(199905),
+                                        tachy::tachy_date(200501),
+                                        tachy::tachy_date(201705) };
+            tachy::tachy_date dt2[] = { tachy::tachy_date(196312),
+                                        tachy::tachy_date(200101),
+                                        tachy::tachy_date(200502),
+                                        tachy::tachy_date(202004) };
+            TS_ASSERT_EQUALS(-178, dt2[0] - dt1[0]);
+            TS_ASSERT_EQUALS(  20, dt2[1] - dt1[1]);
+            TS_ASSERT_EQUALS(   1, dt2[2] - dt1[2]);
+            TS_ASSERT_EQUALS(  35, dt2[3] - dt1[3]);
+      }
+
+      void test_dates_add()
+      {
+            TS_TRACE("test_dates_add");
+
+            tachy::tachy_date dt[] = { tachy::tachy_date(196312),
+                                       tachy::tachy_date(200001),
+                                       tachy::tachy_date(200501),
+                                       tachy::tachy_date(202004) };
+            int m[] = { 200, -1, 23, -35 };
+            TS_ASSERT_EQUALS(tachy::tachy_date(198008), dt[0] + m[0]);
+            TS_ASSERT_EQUALS(tachy::tachy_date(199912), dt[1] + m[1]);
+            TS_ASSERT_EQUALS(tachy::tachy_date(200612), dt[2] + m[2]);
+            TS_ASSERT_EQUALS(tachy::tachy_date(201705), dt[3] + m[3]);
+
+            TS_ASSERT_THROWS(dt[1] + 100000, tachy::exception);
+      }
+
+};
 
 class tachy_arch_traits_test_double : public CxxTest::TestSuite
 {
@@ -239,7 +295,7 @@ public:
             TS_TRACE("test_exp");
             arch_traits_t::packed_t z = arch_traits_t::exp(arch_traits_t::loada(x));
             for (int i = 0; i < arch_traits_t::stride; ++i)
-                  TS_ASSERT_EQUALS(((real_t*)&z)[i], std::exp(x[i]));
+                  TS_ASSERT_DELTA(((real_t*)&z)[i], std::exp(x[i]), 5.0*std::numeric_limits<real_t>::epsilon());
       }
 
       void test_sqrt()
@@ -466,6 +522,7 @@ private:
       typedef tachy::vector_engine<real_t> engine_t;
       typedef std::vector<real_t>          vector_t;
 
+      unsigned int dt;
       unsigned int offset;
       vector_t src;
             
@@ -473,6 +530,7 @@ public:
 
       void setUp()
       {
+            dt = 201705;
             offset = 12;
             src.resize(500, 0.0);
             for (vector_t::iterator i = src.begin(); i != src.end(); ++i)
@@ -483,24 +541,26 @@ public:
       {
             TS_TRACE("test_ctor");
 
-            engine_t eng0(src);
+            engine_t eng0(tachy::tachy_date(dt), src);
+            TS_ASSERT_EQUALS(dt, eng0.get_start_date().as_uint());
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], eng0[i]);
 
-            engine_t eng1(src, offset);
-            for (int i = offset; i < src.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i], eng1[i-offset]);
+            engine_t eng1(tachy::tachy_date(dt), src);
+            tachy::tachy_date di(dt);
+            for (int i = 0; i < src.size(); ++i, ++di)
+                  TS_ASSERT_EQUALS(src[i], eng1[di]);
 
             engine_t eng2(eng1);
-            for (int i = offset; i < src.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i], eng2[i-offset]);
+            for (int i = 0; i < src.size(); ++i)
+                  TS_ASSERT_EQUALS(src[i], eng2[i]);
 
             const real_t value = real_t(random())/RAND_MAX;
-            engine_t eng3(src.size(), value);
+            engine_t eng3(tachy::tachy_date(dt), src.size(), value);
             for (int i = 0; i < eng3.size(); ++i)
                   TS_ASSERT_EQUALS(eng3[i], value);
 
-            engine_t eng4(src.size(), offset);
+            engine_t eng4(tachy::tachy_date(dt), src.size());
             for (int i = 0; i < eng4.size(); ++i)
                   TS_ASSERT_EQUALS(eng4[i], 0.0);
       }
@@ -509,9 +569,10 @@ public:
       {
             TS_TRACE("test_clone");
 
-            engine_t eng0(src);
+            engine_t eng0(tachy::tachy_date(dt), src);
 
             engine_t* eng1 = eng0.clone();
+            TS_ASSERT_EQUALS(eng1->get_start_date(), eng0.get_start_date());
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS((*eng1)[i], src[i]);
       }
@@ -520,52 +581,31 @@ public:
       {
             TS_TRACE("test_iterators");
 
-            engine_t eng(src, offset);
+            engine_t eng(tachy::tachy_date(dt), src);
 
-            TS_ASSERT_EQUALS(*eng.begin(), src[offset]);
+            TS_ASSERT_EQUALS(*eng.begin(), src[0]);
             TS_ASSERT_EQUALS(*(eng.end()-1), src.back());
-            TS_ASSERT_EQUALS(*eng.begin_hist(), src[0]);
-            TS_ASSERT_EQUALS(*eng.end_hist(), *eng.begin());
       }
 
       void test_accessors()
       {
             TS_TRACE("test_accessors");
 
-            engine_t eng(src, offset);
+            engine_t eng(tachy::tachy_date(dt), src);
 
-            TS_ASSERT_EQUALS(eng.front(), src[offset]);
+            TS_ASSERT_EQUALS(eng.front(), src.front());
             TS_ASSERT_EQUALS(eng.back(), src.back());
-            TS_ASSERT_EQUALS(eng.front_hist(), src[0]);
+            TS_ASSERT_EQUALS(eng[tachy::tachy_date(dt)], src.front());
+            TS_ASSERT_EQUALS(eng[tachy::tachy_date(dt) + src.size() - 1], src.back());
       }
 
       void test_size_queries()
       {
             TS_TRACE("test_size_queries");
 
-            engine_t eng(src, offset);
+            engine_t eng(tachy::tachy_date(dt), src);
 
-            TS_ASSERT_EQUALS(eng.size(), src.size() - offset);
-            TS_ASSERT_EQUALS(eng.get_num_hist(), offset);
-      }
-
-      void test_set_history()
-      {
-            TS_TRACE("test_set_history");
-
-            engine_t eng(src, offset);
-            for (int i = offset; i < src.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i], eng[i-offset]);
-            TS_ASSERT_EQUALS(eng.get_num_hist(), offset);
-            
-            std::vector<real_t> hist(100, 20.0);
-            eng.set_hist(hist);
-            TS_ASSERT_EQUALS(eng.get_num_hist(), hist.size());
-            for (int i = offset; i < src.size(); ++i)
-                  TS_ASSERT_EQUALS(src[i], eng[i-offset]);
-            for (int i = 0; i < hist.size(); ++i)
-                  TS_ASSERT_EQUALS(hist[i], *(eng.begin_hist() + i));
-            TS_ASSERT_EQUALS(eng.get_num_hist(), hist.size());
+            TS_ASSERT_EQUALS(eng.size(), src.size());
       }
 };
 
@@ -580,25 +620,21 @@ public:
 
       void test_iota()
       {
-            engine_t eng0;
+            tachy::tachy_date dt(201703);
+            
+            engine_t eng0(dt);
             TS_ASSERT_EQUALS(eng0.size(), 0);
 
             unsigned int size = 500;
             int start = 0;
-            engine_t eng1(start, size);
+            engine_t eng1(dt, start, size);
             TS_ASSERT_EQUALS(eng1.size(), size);
             for (int i = 0; i < eng1.size(); ++i)
                   TS_ASSERT_EQUALS(eng1[i], i + start);
 
-            engine_t eng2 = eng1;
-            TS_ASSERT_EQUALS(eng2.size(), eng1.size());
-            for (int i = 0; i < eng2.size(); ++i)
-                  TS_ASSERT_EQUALS(eng2[i], i + start);
-
             start = 12;
             size = 400;
-            engine_t eng3(start, size);
-            eng2 = eng3;
+            engine_t eng2(dt, start, size);
             TS_ASSERT_EQUALS(eng2.size(), size);
             for (int i = 0; i < eng2.size(); ++i)
                   TS_ASSERT_EQUALS(eng2[i], i + start);
@@ -632,8 +668,9 @@ public:
       
       void test_lagged_engine()
       {
-            raw_engine_t eng0(src);
+            raw_engine_t eng0(tachy::tachy_date(201705), src);
 
+            tachy::tachy_date dt = eng0.get_start_date();
             unsigned int lag = 2;
             c_engine_t leng1(eng0, lag);
             TS_ASSERT_EQUALS(src.size(), leng1.size());
@@ -671,7 +708,7 @@ public:
 
       void setUp()
       {
-            date = 20170310;
+            date = 201703;
             src.resize(500, 0.0);
             for (std::vector<real_t>::iterator i = src.begin(); i != src.end(); ++i)
                   *i = real_t(random())/RAND_MAX;
@@ -681,7 +718,7 @@ public:
       {
             TS_TRACE("test_ctor");
 
-            vector_t v0("v0", date, src);
+            vector_t v0("v0", tachy::tachy_date(date), src);
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], v0[i]);
 
@@ -689,7 +726,7 @@ public:
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], v1[i]);
 
-            vector_t v2("v2", date, src.size());
+            vector_t v2("v2", tachy::tachy_date(date), src.size());
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(real_t(0), v2[i]);
       }
@@ -734,7 +771,7 @@ public:
 
       void setUp()
       {
-            date = 20170310;
+            date = 201703;
             src.resize(500, 0.0);
             for (std::vector<real_t>::iterator i = src.begin(); i != src.end(); ++i)
                   *i = real_t(random())/RAND_MAX;
@@ -744,7 +781,7 @@ public:
       {
             TS_TRACE("test_ctor");
 
-            vector_t v0("v0", date, src);
+            vector_t v0("v0", tachy::tachy_date(date), src);
             for (int i = 0; i < src.size(); ++i)
                   TS_ASSERT_EQUALS(src[i], v0[i]);
 
@@ -818,7 +855,7 @@ public:
       void setUp()
       {
             unsigned int sz = 500;
-            date = 20170310;
+            date = 201703;
             for (int i = 1; i < sizeof(src)/sizeof(src[0]); ++i)
                   set_vector(sz, src[i]);
             src[0].resize(sz, 0.0);
@@ -828,9 +865,9 @@ public:
       {
             TS_TRACE("test_2op");
 
-            vector_t x("x", date, src[2]);
-            vector_t y("y", date, src[1]);
-            vector_t r("r", date, src[0]);
+            vector_t x("x", tachy::tachy_date(date), src[2]);
+            vector_t y("y", tachy::tachy_date(date), src[1]);
+            vector_t r("r", tachy::tachy_date(date), src[0]);
 
             const real_t delta =  2.0*std::numeric_limits<real_t>::epsilon();
 
@@ -855,10 +892,10 @@ public:
       {
             TS_TRACE("test_3op");
 
-            vector_t x("x", date, src[3]);
-            vector_t y("y", date, src[2]);
-            vector_t z("z", date, src[1]);
-            vector_t r("r", date, src[0]);
+            vector_t x("x", tachy::tachy_date(date), src[3]);
+            vector_t y("y", tachy::tachy_date(date), src[2]);
+            vector_t z("z", tachy::tachy_date(date), src[1]);
+            vector_t r("r", tachy::tachy_date(date), src[0]);
             
             r = x + y + z;
             for (int i = 0; i < r.size(); ++i)
@@ -891,7 +928,7 @@ public:
 
       cached_vector_t make_cached_vector(cache_t& cache, const char* name, const std::vector<real_t>& src) const
       {
-            cached_vector_t vec(name, date, src.size(), cache, false);
+            cached_vector_t vec(name, tachy::tachy_date(date), src.size(), cache, false);
             for (int i = 0; i < src.size(); ++i)
                   vec[i] = src[i];
             return vec;
@@ -903,16 +940,18 @@ public:
 
             cache_t cache("c0");
 
-            cached_vector_t u("u", date, src[1], cache, false);
-            cached_vector_t v("v", date, src[2], cache, false);
+            cached_vector_t u("u", tachy::tachy_date(date), src[1], cache, false);
+            cached_vector_t v("v", tachy::tachy_date(date), src[2], cache, false);
             cached_vector_t w = make_cached_vector(cache, "w", src[3]);
 
+            cached_vector_t* t = new cached_vector_t("t", tachy::tachy_date(date), src[3], cache, false);
+            
             for (int k = 0; k < 10; ++k)
             {
                   set_vector(src[4].size(), src[4]);
 
-                  vector_t x("x", date, src[4]);
-                  vector_t r("r", date, src[0]);
+                  vector_t x("x", tachy::tachy_date(date), src[4]);
+                  vector_t r("r", tachy::tachy_date(date), src[0]);
 
                   r = u*(1.0 + v)/(2.0 - w) + (1.0 - v)*x;
                   
@@ -928,9 +967,11 @@ public:
                   if (k == 2)
                   {
                         cached_vector_t z = u*v + 1.0;
-                        cached_vector_t y = z*w + 2.0;
+                        cached_vector_t y = z*(*t) + 2.0;
 
                         z.drop();
+
+                        delete t;
                   }
             }
 
@@ -947,18 +988,20 @@ public:
       {
             TS_TRACE("test_static_functors");
 
-            vector_t x("x", date, src[1]);
-            vector_t r("r", date, src[0]);
+            const real_t delta = 5.0*std::numeric_limits<real_t>::epsilon();
+            
+            vector_t x("x", tachy::tachy_date(date), src[1]);
+            vector_t r("r", tachy::tachy_date(date), src[0]);
 
             r = exp(-x);
 
             for (int i = 0; i < r.size(); ++i)
-                  TS_ASSERT_EQUALS(std::exp(-src[1][i]), r[i]);
+                  TS_ASSERT_DELTA(std::exp(-src[1][i]), r[i], delta);
 
             r = log(1.1 + 0.5*x);
 
             for (int i = 0; i < r.size(); ++i)
-                  TS_ASSERT_EQUALS(std::log(1.1 + 0.5*src[1][i]), r[i]);
+                  TS_ASSERT_DELTA(std::log(1.1 + 0.5*src[1][i]), r[i], delta);
 
             r = abs(x);
 
@@ -966,14 +1009,45 @@ public:
                   TS_ASSERT_EQUALS(std::abs(src[1][i]), r[i]);
       }
 
+      void test_static_posneg_functors()
+      {
+            TS_TRACE("test_static_posneg_functors");
+
+            vector_t x("x", tachy::tachy_date(date), src[1]);
+            vector_t r("r", tachy::tachy_date(date), src[0]);
+
+            r = exp(max(0.0, x));
+
+            for (int i = 0; i < r.size(); ++i)
+                  TS_ASSERT_EQUALS(std::exp(std::max(0.0, src[1][i])), r[i]);
+      }
+
       void test_size_queries()
       {
             TS_TRACE("test_size_queries");
       }
 
-      void test_set_history()
+      void test_shifted_ops()
       {
-            TS_TRACE("test_set_history");
+            TS_TRACE("test_shifted_ops");
+
+            int shift = 12;
+            vector_t x("x", tachy::tachy_date(date), src[1]);
+            vector_t y("y", tachy::tachy_date(date) + shift, src[2]);
+
+            vector_t r = x;
+            r = y;
+            TS_ASSERT_EQUALS(tachy::tachy_date(date), r.get_start_date());
+            for (int i = 0; i < shift; ++i)
+                  TS_ASSERT_EQUALS(x[i], r[i]);
+            for (int i = shift; i < r.size(); ++i)
+                  TS_ASSERT_EQUALS(y[i-shift], r[i]);
+
+            vector_t u = x + y;
+            TS_ASSERT_EQUALS(y.get_start_date(), u.get_start_date());
+            const real_t delta = 2.0*std::numeric_limits<real_t>::epsilon();
+            for (int i = 0; i < u.size(); ++i)
+                  TS_ASSERT_DELTA(x[i+shift] + y[i], u[i], delta);
       }
 };
 
@@ -1046,7 +1120,7 @@ public:
 
       void setUp()
       {
-            date = 20170310;
+            date = 201703;
             
             pts.resize(8, xy_pair_t(0.0, 0.0));
             pts[0] = xy_pair_t(0.0, 0.02);
@@ -1091,8 +1165,8 @@ public:
             
             tachy::linear_spline_incr_slope<real_t> s("test", pts);
 
-            vector_t x("x", date, src);
-            vector_t r("r", date, tgt);
+            vector_t x("x", tachy::tachy_date(date), src);
+            vector_t r("r", tachy::tachy_date(date), tgt);
 
             r = s(x);
 
@@ -1144,8 +1218,8 @@ public:
             
             tachy::linear_spline_uniform<real_t> s("test", pts);
             
-            vector_t x("x", date, src);
-            vector_t r("r", date, tgt);
+            vector_t x("x", tachy::tachy_date(date), src);
+            vector_t r("r", tachy::tachy_date(date), tgt);
 
             r = s(x);
 
@@ -1240,8 +1314,8 @@ public:
             
             tachy::linear_spline_uniform_index<real_t, false> s("test", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
-            vector_t x("x", date, src);
-            vector_t r("r", date, tgt);
+            vector_t x("x", tachy::tachy_date(date), src);
+            vector_t r("r", tachy::tachy_date(date), tgt);
 
             r = s(x);
 
@@ -1263,8 +1337,8 @@ public:
             
             tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts_uniform, tachy::spline_util<real_t>::SPLINE_INIT_FROM_INCR_SLOPES);
             
-            vector_t x("x", date, src);
-            vector_t r("r", date, tgt);
+            vector_t x("x", tachy::tachy_date(date), src);
+            vector_t r("r", tachy::tachy_date(date), tgt);
 
             r = s(x);
 
@@ -1297,7 +1371,7 @@ public:
                              
             tachy::linear_spline_uniform_index<real_t, false> s1("test_xy", pts_xy, tachy::spline_util<real_t>::SPLINE_INIT_FROM_XY_POINTS);
 
-            vector_t x("x", date, src);
+            vector_t x("x", tachy::tachy_date(date), src);
             vector_t r1 = s1(x);
             vector_t r0 = s0(x);
             
@@ -1316,8 +1390,8 @@ public:
             
             tachy::linear_spline_uniform_index<real_t, false> s("test_uniform", pts, tachy::spline_util<real_t>::SPLINE_INIT_FROM_LOCAL_SLOPES);
             
-            vector_t x("x", date, src);
-            vector_t r("r", date, tgt);
+            vector_t x("x", tachy::tachy_date(date), src);
+            vector_t r("r", tachy::tachy_date(date), tgt);
 
             r = s(x);
 
@@ -1349,7 +1423,7 @@ public:
             {
                   std::ostringstream id;
                   id << "mod " << i + 1;
-                  modulation.push_back(cached_vector_t(id.str(), 20170320, n_mod, cache, true));
+                  modulation.push_back(cached_vector_t(id.str(), tachy::tachy_date(201703), n_mod, cache, true));
                   real_t amp = real_t(random())/RAND_MAX;
                   for (int t = 0; t < n_mod; ++t)
                         modulation[i][t] = amp*exp(-real_t(t)/n_mod);

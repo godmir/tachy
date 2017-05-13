@@ -6,6 +6,7 @@
 #include "tachy_arch_traits.h"
 #include "tachy_aligned_allocator.h"
 #include "tachy_cacheable.h"
+#include "tachy_date.h"
 
 namespace tachy
 {
@@ -17,29 +18,24 @@ namespace tachy
             typedef aligned_allocator<NumType, arch_traits_t::align> allocator_t;
             typedef std::vector<NumType, allocator_t> storage_t;
 
-            vector_engine(const std::vector<NumType>& data, unsigned int start) :
+            vector_engine(const tachy_date& start_date, const std::vector<NumType>& data) :
                   _data(data.begin(), data.end()),
-                  _num_hist(start)
+                  _start_date(start_date)
             {}
 
             vector_engine(const vector_engine& other) : cacheable(other),
                   _data(other._data),
-                  _num_hist(other._num_hist)
+                  _start_date(other._start_date)
             {}
 
-            explicit vector_engine(const std::vector<NumType>& data) :
-                  _data(data.begin(), data.end()),
-                  _num_hist(0)
-            {}
-
-            vector_engine(unsigned int size, NumType value) :
+            vector_engine(const tachy_date& start_date, unsigned int size, NumType value) :
                   _data(size, value),
-                  _num_hist(0)
+                  _start_date(start_date)
             {}
 
-            vector_engine(unsigned int size, unsigned int start) :
+            vector_engine(const tachy_date& start_date, unsigned int size) :
                   _data(size, NumType(0)),
-                  _num_hist(start)
+                  _start_date(start_date)
             {}
 
             // virtual because it inherits from cacheable
@@ -59,7 +55,7 @@ namespace tachy
                         // hence we're copying everything here
                         // assignment that only copies projection - not history - can be done with a view/proxy object
                         _data = other._data;
-                        _num_hist = other._num_hist;
+                        _start_date = other._start_date;
                   }
                   return *this;
             }
@@ -75,32 +71,42 @@ namespace tachy
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
                   // can this be improved? or is it faster to go with unaligned load than to branch?
-                  return arch_traits_t::loadu(&_data[idx + _num_hist]);
+                  return arch_traits_t::loadu(&_data[idx]);
             }
 
             NumType operator[] (int idx) const
             {
-                  return _data[idx + _num_hist];
+                  return _data[idx];
             }
 
             NumType& operator[] (int idx)
             {
-                  return _data[idx + _num_hist];
+                  return _data[idx];
             }
 
+            NumType operator[] (const tachy_date& dt) const
+            {
+                  return _data[dt - _start_date];
+            }
+
+            NumType at(const tachy_date& dt) const
+            {
+                  return _data[std::max(0, dt - _start_date)];
+            }
+            
             unsigned int size() const
             {
-                  return _data.size() - _num_hist;
+                  return _data.size();
             }
 
             typename storage_t::const_iterator begin() const
             {
-                  return _data.begin() + _num_hist;
+                  return _data.begin();
             }
 
             typename storage_t::iterator begin()
             {
-                  return _data.begin() + _num_hist;
+                  return _data.begin();
             }
 
             typename storage_t::const_iterator end() const
@@ -115,12 +121,12 @@ namespace tachy
 
             NumType front() const
             {
-                  return _data[_num_hist];
+                  return _data[0];
             }
 
             NumType& front()
             {
-                  return _data[_num_hist];
+                  return _data[0];
             }
 
             NumType back() const
@@ -133,48 +139,32 @@ namespace tachy
                   return _data.back();
             }
 
-            typename storage_t::const_iterator begin_hist() const
+            tachy_date get_start_date() const
             {
-                  return _data.begin();
+                  return _start_date;
             }
 
-            typename storage_t::const_iterator end_hist() const
+            void set_start_date(const tachy_date& start_date)
             {
-                  return begin();
-            }
-
-            NumType front_hist() const
-            {
-                  return _data[0];
-            }
-
-            unsigned int get_num_hist() const
-            {
-                  return _num_hist;
-            }
-
-            // TODO: need a less crude way to set history size
-            void set_num_hist(unsigned int num_hist)
-            {
-                  _num_hist = num_hist;
-            }
-            
-            // note that while the "projection" section remains intact
-            // "history" section is resized as necessary
-            void set_hist(const std::vector<NumType>& from)
-            {
-                  if (false == from.empty())
+                  int diff = start_date - _start_date;
+                  if (diff > 0) // new date is later, chop off some history
                   {
-                        if (_num_hist > 0)
-                              _data.erase(_data.begin(), _data.begin()+_num_hist);
-                        _data.insert(_data.begin(), from.begin(), from.end());
-                        _num_hist = from.size();
+                        for (int i = diff, i_max = _data.size(); i < i_max; ++i)
+                              _data[i-diff] = _data[i];
+                        _data.resize(_data.size() - diff, NumType(0));
+                  }
+                  else if (diff < 0) // new date is earlier - add 0's
+                  {
+                        diff = -diff; // for clarity
+                        _data.resize(_data.size() + diff, NumType(0));
+                        for (int i = _data.size(); i > diff; --i)
+                              _data[i] = _data[i-diff];
                   }
             }
-
+            
       private:
-            storage_t    _data;
-            unsigned int _num_hist;
+            storage_t  _data;
+            tachy_date _start_date;
       };
 }
 
