@@ -607,6 +607,46 @@ public:
 
             TS_ASSERT_EQUALS(eng.size(), src.size());
       }
+
+      void test_reset()
+      {
+            TS_TRACE("test_reset");
+
+            tachy::tachy_date base_date(dt);
+            engine_t base_eng(base_date, src);
+
+            tachy::tachy_date start_dates[] = { base_date - src.size()/2,
+                                                base_date,
+                                                base_date + 12,
+                                                base_date + src.size(),
+                                                base_date + 2*src.size() };
+            size_t sizes[] = { src.size()/4,
+                               src.size() - 12,
+                               src.size(),
+                               src.size() + 12,
+                               2*src.size() };
+                                              
+            for (int k = 0; k < sizeof(start_dates)/sizeof(start_dates[0]); ++k)
+            {
+                  for (int j = 0; j < sizeof(sizes)/sizeof(sizes[0]); ++j)
+                  {
+                        // std::cerr << k << ' ' << j << std::endl;
+                        engine_t eng = base_eng;
+                        eng.reset(start_dates[k], sizes[j]);
+                        TS_ASSERT_EQUALS(start_dates[k], eng.get_start_date());
+                        TS_ASSERT_EQUALS(sizes[j], eng.size());
+                        int i0 = base_date - start_dates[k];
+                        int i1 = std::min<int>(sizes[j], src.size() + i0);
+                        int i = 0;
+                        for ( ; i < i0; ++i)
+                              TS_ASSERT_EQUALS(0.0, eng[i]);
+                        for ( ; i < i1; ++i)
+                              TS_ASSERT_EQUALS(base_eng[i-i0], eng[i]);
+                        for ( ; i < sizes[j]; ++i)
+                              TS_ASSERT_EQUALS(0.0, eng[i]);
+                  }
+            }
+      }
 };
 
 class tachy_iota_engine_test : public CxxTest::TestSuite

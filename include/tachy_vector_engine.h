@@ -151,11 +151,15 @@ namespace tachy
                   int diff = new_start_date - _start_date;
                   if (diff > 0) // new date is later, chop off some history
                   {
-                        // ... by moving things back
-                        for (int i = diff, i_max = new_size; i < i_max; ++i)
+                        // ... by moving values to the lower indices
+                        for (int i = diff, i_max = std::min(size(), diff + new_size); i < i_max; ++i)
                               _data[i-diff] = _data[i];
-                        // and chopping off the tail
+                        // ... and adjusting the tail as necessary
+                        unsigned int old_size = size();
                         _data.resize(new_size, NumType(0));
+                        // ... zero out the tail
+                        for (int i = std::max<int>(0, old_size - diff); i < new_size; ++i)
+                              _data[i] = NumType(0);
                   }
                   else if (diff < 0) // new date is earlier - add 0's
                   {
@@ -166,6 +170,9 @@ namespace tachy
                         for (int i = 0; i < diff; ++i)
                               _data[i] = NumType(0);
                   }
+                  else if (new_size != size()) // same start date, simply resize
+                        _data.resize(new_size, NumType(0));
+                  _start_date = new_start_date;
             }
             
       private:
