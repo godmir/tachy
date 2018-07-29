@@ -897,10 +897,62 @@ namespace tachy
             }
             static inline packed_t exp(const packed_t x)
             {
-                  return _mm256_setr_pd(std::exp(((scalar_t*)(&x))[0]),
-                                        std::exp(((scalar_t*)(&x))[1]),
-                                        std::exp(((scalar_t*)(&x))[2]),
-                                        std::exp(((scalar_t*)(&x))[3]));
+                  const packed_t max_exp = _mm256_set1_pd(709.437);
+                  const packed_t min_exp = _mm256_set1_pd(-709.436139303);
+                  packed_t x1 = _mm256_min_pd(_mm256_max_pd(min_exp, x), max_exp);
+
+                  // express exp(x) as exp(f + n*log(2))
+                  const packed_t log2e = _mm256_set1_pd(1.0/0.693147180559945309417);
+                  const packed_t half  = _mm256_set1_pd(0.5);
+                  packed_t n = _mm256_floor_pd(_mm256_add_pd(_mm256_mul_pd(x1, log2e), half));
+
+                  // get the "f" part (remainder of x modulo log(2))
+                  const packed_t exp_c1 = _mm256_set1_pd(0.693145751953125);
+                  const packed_t exp_c2 = _mm256_set1_pd(1.42860682030941723212e-6);
+                  packed_t tmp1 = _mm256_mul_pd(n, exp_c1);
+                  packed_t tmp2 = _mm256_mul_pd(n, exp_c2);
+                  packed_t f = _mm256_sub_pd(x1, tmp1);
+                  f = _mm256_sub_pd(f, tmp2);
+
+                  // build the exp(f) using Pade approximation
+                  packed_t f2 = _mm256_mul_pd(f, f);
+
+                  // numerator of Pade approximation
+                  const packed_t p0 = _mm256_set1_pd(1.26177193074810590878e-4);
+                  const packed_t p1 = _mm256_set1_pd(3.02994407707441961300e-2);
+                  const packed_t p2 = _mm256_set1_pd(9.99999999999999999910e-1);
+                  packed_t pf = p0;
+                  pf = _mm256_add_pd(p1, _mm256_mul_pd(pf, f2));
+                  pf = _mm256_add_pd(p2, _mm256_mul_pd(pf, f2));
+                  pf = _mm256_mul_pd(pf, f);
+
+                  // denomenator of the same
+                  const packed_t q0 = _mm256_set1_pd(3.00198505138664455042e-6);
+                  const packed_t q1 = _mm256_set1_pd(2.52448340349684104192e-3);
+                  const packed_t q2 = _mm256_set1_pd(2.27265548208155028766e-1);
+                  const packed_t q3 = _mm256_set1_pd(2.00000000000000000009e0);
+                  packed_t qf = q0;
+                  qf = _mm256_add_pd(q1, _mm256_mul_pd(qf, f2));
+                  qf = _mm256_add_pd(q2, _mm256_mul_pd(qf, f2));
+                  qf = _mm256_add_pd(q3, _mm256_mul_pd(qf, f2));
+
+                  // put it together
+                  packed_t exp_f = _mm256_div_pd(pf, _mm256_sub_pd(qf, pf));
+                  const packed_t one = _mm256_set1_pd(1.0);
+                  const packed_t two = _mm256_set1_pd(2.0);
+                  exp_f = _mm256_add_pd(one, _mm256_mul_pd(exp_f, two));
+      
+                  /* build 2^n */
+                  index_t vec_j = _mm256_cvttpd_epi32(n); // convert n to a vec of ints
+                  vec_j = _mm_add_epi32(vec_j, _mm_set1_epi32(1023)); // add bias
+                  vec_j = _mm_slli_epi32(vec_j, 20);      // add shift to the exponent field (52-32=20)
+
+                  const index_t vec_0 = _mm_setzero_si128();
+                  packed_t vec_2n;                                              // result of 2^n
+                  ((index_t*)(&vec_2n))[1] = _mm_unpackhi_epi32(vec_0, vec_j); // move 3 and 2 into their slots
+                  ((index_t*)(&vec_2n))[0] = _mm_unpacklo_epi32(vec_0, vec_j); // move 1 and 0 into their slots
+      
+                  return _mm256_mul_pd(exp_f, vec_2n);
             }
             static inline packed_t log(const packed_t x)
             {
