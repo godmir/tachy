@@ -86,7 +86,7 @@ namespace tachy
                   _b(0)
             {}
             
-            linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) throw(exception) :
+            linear_spline_uniform(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes) :
                   _key("LSu_" + name),
                   _size(0),
                   _dx(0),

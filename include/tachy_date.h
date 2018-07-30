@@ -13,7 +13,7 @@ namespace tachy
                   return tachy_date(101);
             }
 
-            explicit tachy_date(unsigned int dt) throw(tachy::exception)
+            explicit tachy_date(unsigned int dt)
                   : _y(dt/100),
                     _m(dt%100)
             {
@@ -38,7 +38,7 @@ namespace tachy
                   return *this;
             }
 
-            tachy_date& operator+= (int months) throw(tachy::exception)
+            tachy_date& operator+= (int months)
             {
                   bool valid = false;
                   int y = _y + months/12;

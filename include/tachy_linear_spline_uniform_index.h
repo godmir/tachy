@@ -129,7 +129,7 @@ namespace tachy
                   _init_type(spline_util<NumType>::SPLINE_INIT_FROM_XY_POINTS)
             {}
             
-            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
+            linear_spline_uniform_index_base(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) :
                   _key("LSui_" + name),
                   _size(0),
                   _idx_size(0),
@@ -280,7 +280,7 @@ namespace tachy
                   base_t::_key = "DUMMY LSuin";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) :
                   base_t(name, nodes, init_type)
             {
                   base_t::_key = "LSuin_" + name;
@@ -355,7 +355,7 @@ namespace tachy
                   base_t::_key = "DUMMY LSuiy";
             }
 
-            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) throw(exception) :
+            linear_spline_uniform_index(const std::string& name, const std::vector<typename spline_util<NumType>::xy_pair_t>& nodes, enum spline_util<NumType>::SPLINE_INIT_TYPE init_type) :
                   base_t(name, nodes, init_type)
             {
                   base_t::_key = "LSuiy_" + name;
@@ -378,7 +378,7 @@ namespace tachy
 
             template <class ModVector>
             linear_spline_uniform_index(const linear_spline_uniform_index<NumType, false>& base,
-                                        const std::vector<ModVector>& modulation) throw(exception)
+                                        const std::vector<ModVector>& modulation)
             {
                   if (modulation.size() != base.get_num_nodes())
                         TACHY_THROW("Incorrect modulation size: got " << modulation.size() << ", expected: " << base.get_num_nodes());

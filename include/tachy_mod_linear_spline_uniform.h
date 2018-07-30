@@ -56,7 +56,7 @@ namespace tachy
       public:
 
             template <class ModVector>
-            mod_linear_spline_uniform_index(const base_spline_t& base, const std::vector<ModVector>& modulation) throw(exception) :
+            mod_linear_spline_uniform_index(const base_spline_t& base, const std::vector<ModVector>& modulation) :
                   _spline(0),
                   _cache(0),
                   _own_memory(true)
