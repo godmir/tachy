@@ -8,6 +8,8 @@ test/example.cpp shows the intended use (implementation of a mock prepayment mod
 tested:
 g++ 4.8 on linux 
 g++ 4.9 on linux
+g++ 9.3 on linux
+(clang 10.0 crashes with an internal error)
 
 requires:
 cxxtest (http://cxxtest.com) for testing
