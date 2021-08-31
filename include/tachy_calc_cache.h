@@ -101,7 +101,7 @@ namespace tachy
 
             const cached_t& operator[](const std::string& key) const
             {
-                  typename cache_engine_t::iterator i = _cache.find(key);
+                  typename cache_engine_t::const_iterator i = _cache.find(key);
                   if (i == _cache.end())
                         TACHY_THROW("calc_cache::get: No such key");
 #if defined(TACHY_VERBOSE)

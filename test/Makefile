@@ -1,9 +1,9 @@
 CXXTESTGEN = cxxtestgen
 CXX        = g++
 INCLUDE    = ../include
-CXXFLAGS   = -I$(INCLUDE) -std=c++11 #-fprofile-generate -fprofile-arcs -ftest-coverage -Ofast
+CXXFLAGS   = -I$(INCLUDE) -std=c++14 #-fprofile-generate -fprofile-arcs -ftest-coverage -Ofast
 OPT        = -O3
-DEBUG      = -O0 -g
+DEBUG      = -O0 -g -DTACHY_VERBOSE
 
 HEADERS = $(wildcard $(INCLUDE)/tachy_*.h) $(INCLUDE)/tachy.h
 
@@ -94,6 +94,9 @@ example_avx2: example.cpp $(HEADERS)
 
 example_avx: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -mavx $<
+
+example_avx.debug: example.cpp $(HEADERS)
+	$(CXX) -o $@ $(CXXFLAGS) $(DEBUG) -mavx $<
 
 example_sse2: example.cpp $(HEADERS)
 	$(CXX) -o $@ $(CXXFLAGS) $(OPT) -msse2 $<

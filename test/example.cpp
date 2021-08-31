@@ -345,7 +345,7 @@ void runAll(const Model& model, const vector<Pool*>& collateral, const tachy::ta
                   // the following should be detected - via keys - find left key on the right
                   // and disallowed (or maybe disable vectorization)
                   burnout[0] = 0.0;
-                  burnout = burnout[t-1] + tachy::max(0.0, tachy::min(pmtRatio1, 0.2));
+                  burnout = 0.98*burnout[t-1] + tachy::max(0.0, tachy::min(pmtRatio1, 0.2));
 #else
                   for (unsigned int i = 1; i < nProj; ++i)
                         burnout[i] = 0.98*burnout[i-1] + max(0.0, min(pmtRatio1[i], 0.2));

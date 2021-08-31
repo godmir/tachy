@@ -137,7 +137,7 @@ public:
             arch_traits_t::index_t iz = arch_traits_t::iset1(ix[0]);
             for (int i = 0; i < arch_traits_t::stride; ++i)
             {
-#if TACHY_SIMD_VERSION==6 // when compiled with "-mfma -O3" TS_ASSERT_EQUALS shows garbage for the first element of iz - unless iz is used other statements
+#if TACHY_SIMD_VERSION==6 || TACHY_SIMD_VERSION==4 // when compiled with "-mfma -O3" or "-mavx -O3" with gcc v9 TS_ASSERT_EQUALS shows garbage for the first element of iz - unless iz is used other statements
                   std::ostringstream msg;
                   msg << i << ", " << ix[0] << ", " << ((int*)&iz)[i];
                   TSM_ASSERT_EQUALS(msg.str(), ((int*)&iz)[i], ix[0]);
@@ -339,7 +339,15 @@ public:
                   ((int*)&idx)[i] = int((arch_traits_t::stride + 1)*double(random())/RAND_MAX)%arch_traits_t::stride;
             arch_traits_t::index_t iz = arch_traits_t::igather(&src[0], idx);
             for (int i = 0; i < arch_traits_t::stride; ++i)
+            {
+#if TACHY_SIMD_VERSION==4 // when compiled with "-mavx -O3" with gcc v9 TS_ASSERT_EQUALS shows garbage for the first element of iz - unless iz is used other statements
+                  std::ostringstream msg;
+                  msg << i << ", " << ix[0] << ", " << ((int*)&iz)[i];
+                  TSM_ASSERT_EQUALS(msg.str(), ((int*)&iz)[i], src[((int*)(&idx))[i]]);
+#else
                   TS_ASSERT_EQUALS(((int*)&iz)[i], src[((int*)(&idx))[i]]);
+#endif
+            }
       }
 };
 
