@@ -14,11 +14,11 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: make
-      run: make
+      run: cd test && make
     - name: test
-      run: make test
+      run: cd test && make test
     - name: make example
-      run: make example
+      run: cd test && make example
     - name: run example
-      run: example_base && example_sse2 && example_avx && example_avx2 && example_fma && example_fmavx2        
+      run: cd test && example_base && example_sse2 && example_avx && example_avx2 && example_fma && example_fmavx2        
 
