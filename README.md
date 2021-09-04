@@ -6,8 +6,9 @@ Tachy uses intel/amd sse/sse2/avx/avx2/fma simd instructions (but no dynamic dis
 test/example.cpp shows the intended use (implementation of a mock prepayment model)
 
 tested:
-g++ 4.8 on linux 
-g++ 4.9 on linux
+g++ 4.8, 4.9, 9.3 on linux
+
+(clang 10.0 crashes with an internal error)
 
 requires:
 cxxtest (http://cxxtest.com) for testing
