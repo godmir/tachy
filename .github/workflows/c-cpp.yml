@@ -24,5 +24,5 @@ jobs:
     - name: make example
       run: cd test && make example
     - name: run example
-      run: cd test && example_base && example_sse2 && example_avx && example_avx2 && example_fma && example_fmavx2        
+      run: cd test && ./example_base && ./example_sse2 && ./example_avx && ./example_avx2 && ./example_fma && ./example_fmavx2        
 
