@@ -298,7 +298,7 @@ void runAll(const Model& model, const vector<Pool*>& collateral, const tachy::ta
       for (int i = 0; i < numHist; ++i)
             mtg[i] = 4.51;
       
-      char pathKey[8];
+      char pathKey[16];
 
       long unsigned int ut = 0;
       struct timeval tv;
