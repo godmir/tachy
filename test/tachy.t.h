@@ -873,6 +873,26 @@ public:
       {
             TS_TRACE("test_set_history");
       }
+
+      void test_assign_guard()
+      {
+            vector_t v0("v0", tachy::tachy_date(date), src);
+
+            std::vector<real_t> expected(src.size(), 0.0);
+            for (int i = 1; i < expected.size(); ++i)
+                  expected[i] = 0.75*expected[i-1] + std::max(0.0, std::min(v0[i], 0.2));
+
+            int dt = 1;
+            tachy::time_shift t;
+            v0[0] = 0.0;
+            v0 = 0.75*v0[t-dt] + tachy::max(0.0, tachy::min(v0, 0.2));
+
+            for (int i = 0; i < src.size(); ++i)
+            {
+                  const real_t delta = 2.0*std::abs(expected[i])*std::numeric_limits<real_t>::epsilon();
+                  TS_ASSERT_DELTA(expected[i], v0[i], delta);
+            }
+      }
 };
 
 class tachy_expression_test : public CxxTest::TestSuite

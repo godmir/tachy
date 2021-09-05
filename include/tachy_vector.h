@@ -692,44 +692,54 @@ namespace tachy
                   int i_tgt = std::max(0, num_hist);
                   int i_src = std::max(0, -num_hist);
                   int n_elems = std::min<int>(other.size() - i_src, size() - i_tgt);
-                  // offsets - sizes of non-vectorizable front pieces
-                  int offset_tgt = i_tgt%arch_traits_t::stride;
-                  int offset_src = i_src%arch_traits_t::stride;
-                  // at this point one of i_src, i_tgt MUST be 0
-                  // which implies that one of offsets MUST ALSO be 0
-                  // Conversely, if one of the offsets is non-0 - then its starting index is non-0 as well
-                  // and therefore the other starting index is 0
-                  int i = 0;
-                  if (offset_tgt == offset_src) // both are 0
-                  {
-                        for ( ; i < n_elems; i += arch_traits_t::stride)
-                              set_packed(i_tgt + i, other.get_packed(i_src + i));
+                  if (_engine.is_guarded()) // this is only necessary if the vector is also present on the rhs
+                  {                         // but checking this specifically requiers extra code, so - doing one size fits all
+                        int i = 0;
+                        for ( ; i < n_elems; ++i)
+                              _engine[i_tgt + i] = other[i_src + i];
+                        for (i += i_tgt; i < _engine.size(); ++i)
+                              _engine[i] = _engine[i_tgt + n_elems - 1];                                    
                   }
-                  else if (offset_tgt > 0) // i_src == 0 and offset_src == 0
+                  else
                   {
-                        int i_tgt_adj = i_tgt - offset_tgt + arch_traits_t::stride;
-                        int n_max = n_elems - arch_traits_t::stride;
-                        for ( ; i < n_max; i += arch_traits_t::stride)
-                              set_packed(i_tgt_adj + i, other.get_packed(i));
-                        for (int j = 0; j < n_max; ++j)
-                              _engine[i_tgt + j] = _engine[i_tgt_adj + j];
-                  }
-                  else if (offset_src > 0) // i_tgt == 0 and offset_tgt == 0
-                  {
-                        int i_src_adj = i_src - offset_src;
-                        for (i = arch_traits_t::stride; i < n_elems; i += arch_traits_t::stride)
-                              set_packed(i, other.get_packed(i_src_adj + i));
-                        for (int j = 0, j_max = n_elems - arch_traits_t::stride; j < j_max; ++j)
-                              _engine[offset_src + j] = _engine[arch_traits_t::stride + j];
-                        for (int j = 0; j < offset_src; ++j)
-                              _engine[j] = other[i_src + j];
-                  }
-                  // tail end processing is the same for all
-                  for ( ; i < n_elems; ++i)
-                        _engine[i_tgt+i] = other[i_src+i];
-                  for (i += i_tgt; i < _engine.size(); ++i)
-                        _engine[i] = _engine[i_tgt + n_elems - 1];
-                  
+                        // offsets - sizes of non-vectorizable front pieces
+                        int offset_tgt = i_tgt%arch_traits_t::stride;
+                        int offset_src = i_src%arch_traits_t::stride;
+                        // at this point one of i_src, i_tgt MUST be 0
+                        // which implies that one of offsets MUST ALSO be 0
+                        // Conversely, if one of the offsets is non-0 - then its starting index is non-0 as well
+                        // and therefore the other starting index is 0
+                        int i = 0;
+                        if (offset_tgt == offset_src) // both are 0
+                        {
+                              for ( ; i < n_elems; i += arch_traits_t::stride)
+                                    set_packed(i_tgt + i, other.get_packed(i_src + i));
+                        }
+                        else if (offset_tgt > 0) // i_src == 0 and offset_src == 0
+                        {
+                              int i_tgt_adj = i_tgt - offset_tgt + arch_traits_t::stride;
+                              int n_max = n_elems - arch_traits_t::stride;
+                              for ( ; i < n_max; i += arch_traits_t::stride)
+                                    set_packed(i_tgt_adj + i, other.get_packed(i));
+                              for (int j = 0; j < n_max; ++j)
+                                    _engine[i_tgt + j] = _engine[i_tgt_adj + j];
+                        }
+                        else if (offset_src > 0) // i_tgt == 0 and offset_tgt == 0
+                        {
+                              int i_src_adj = i_src - offset_src;
+                              for (i = arch_traits_t::stride; i < n_elems; i += arch_traits_t::stride)
+                                    set_packed(i, other.get_packed(i_src_adj + i));
+                              for (int j = 0, j_max = n_elems - arch_traits_t::stride; j < j_max; ++j)
+                                    _engine[offset_src + j] = _engine[arch_traits_t::stride + j];
+                              for (int j = 0; j < offset_src; ++j)
+                                    _engine[j] = other[i_src + j];
+                        }
+                        // tail end processing is the same for all
+                        for ( ; i < n_elems; ++i)
+                              _engine[i_tgt+i] = other[i_src+i];
+                        for (i += i_tgt; i < _engine.size(); ++i)
+                              _engine[i] = _engine[i_tgt + n_elems - 1];
+                  }                  
                   return *this;
             }
 

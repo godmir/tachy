@@ -20,22 +20,26 @@ namespace tachy
 
             vector_engine(const tachy_date& start_date, const std::vector<NumType>& data) :
                   _data(data.begin(), data.end()),
-                  _start_date(start_date)
+                  _start_date(start_date),
+                  _guard(0)
             {}
 
             vector_engine(const vector_engine& other) : cacheable(other),
                   _data(other._data),
-                  _start_date(other._start_date)
+                  _start_date(other._start_date),
+                  _guard(0) // no need to copy because storage is not shared between this and other
             {}
 
             vector_engine(const tachy_date& start_date, unsigned int size, NumType value) :
                   _data(size, value),
-                  _start_date(start_date)
+                  _start_date(start_date),
+                  _guard(0)
             {}
 
             vector_engine(const tachy_date& start_date, unsigned int size) :
                   _data(size, NumType(0)),
-                  _start_date(start_date)
+                  _start_date(start_date),
+                  _guard(0)
             {}
 
             // virtual because it inherits from cacheable
@@ -53,6 +57,7 @@ namespace tachy
                   {
                         _data = other._data;
                         _start_date = other._start_date;
+                        // _guard is unchanged (not sure it's right: but generally _guard is about storage, not actual values)
                   }
                   return *this;
             }
@@ -174,10 +179,28 @@ namespace tachy
                         _data.resize(new_size, NumType(0));
                   _start_date = new_start_date;
             }
+
+            void incr_assign_guard() const
+            {
+                  ++_guard;
+            }
+
+            void decr_assign_guard() const
+            {
+                  if (_guard > 0)
+                        --_guard;
+            }
+
+            bool is_guarded() const
+            {
+                  return _guard > 0;
+            }
             
       private:
             storage_t  _data;
             tachy_date _start_date;
+
+            mutable int _guard;
       };
 }
 

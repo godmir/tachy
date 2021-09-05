@@ -32,11 +32,28 @@ namespace tachy
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
 
-            lagged_engine(const Op& op, int lag) : _op(op), _lag(lag) {}
+            lagged_engine(const Op& op, int lag) :
+                  _op(op),
+                  _lag(lag)
+            {
+                  if (_lag > 0)
+                        _op.incr_assign_guard();
+            }
 
             // Copying is suspect - it may lead to dangling references (see the type of _op variable)
-            lagged_engine(const lagged_engine& other) : _op(other._op), _lag(other._lag) {}
+            lagged_engine(const lagged_engine& other) :
+                  _op(other._op),
+                  _lag(other._lag)
+            {
+                  if (_lag > 0)
+                        _op.incr_assign_guard();
+            }
 
+            virtual ~lagged_engine() // virtual - just in case we derive from it
+            {
+                  _op.decr_assign_guard();
+            }
+                        
             NumType operator[] (int idx) const
             {
                   return _op[lag_checking_policy<Checked>::lag(0, idx, _lag)]; // checking upper boundary is left for the operand itself
