@@ -138,6 +138,16 @@ namespace tachy
                   return _engine->get_start_date();
             }
             
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const data_engine_t& eng) const
+            {
+                  return _engine == &eng;
+            }
+            
       protected:
             cache_t& _cache;
             std::string _id;
@@ -195,6 +205,11 @@ namespace tachy
                   return _fct;
             }
             
+            template <class SomeDataEngine> bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return _arg.depends_on(eng);
+            }
+            
       protected:
             typename data_engine_traits<Arg>::ref_type_t _arg;
 
@@ -223,7 +238,7 @@ namespace tachy
                     _arg(arg),
                     _fct(fct),
                     _cache(cache),
-                    _cached_vector(0)
+                    _cached_vector(nullptr)
             {}
 
             functor_engine_delayed_cache(const functor_engine_delayed_cache& other)
@@ -231,7 +246,7 @@ namespace tachy
                     _arg(other._arg),
                     _fct(other._fct),
                     _cache(other._cache),
-                    _cached_vector(0)
+                    _cached_vector(nullptr)
             {}
 
             ~functor_engine_delayed_cache()
@@ -262,11 +277,19 @@ namespace tachy
             
             const functor_engine<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy>& get_cached_engine() const
             {
-                  if (0 == _cached_vector)
+                  if (nullptr == _cached_vector)
                         const_cast<functor_engine_delayed_cache*>(this)->_cached_vector = new functor_engine<NumType, Arg, Functor, Level, FcnCallPolicy, FunctorObjPolicy>(_key, _arg, _fct, _cache);
                   return *_cached_vector;
             }
 
+            template <class SomeDataEngine> bool depends_on(const SomeDataEngine& eng) const
+            {
+                  if (_cached_vector)
+                        return _cached_vector->depends_on(eng);
+                  else
+                        return _arg.depends_on(eng);
+            }
+            
       protected:
             std::string _key;
             typename data_engine_traits<Arg>::ref_type_t _arg;
@@ -319,6 +342,12 @@ namespace tachy
                   return calc_vector<NumType, engine_t, Level>(hashed_id, x.get_start_date(), eng, x.cache());
             }
 
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
+
             exp_functor()
                   : _key("EXP")
             {}
@@ -341,6 +370,12 @@ namespace tachy
             inline NumType operator()(NumType x) const
             {
                   return std::min<NumType>(_upper_bound, x);
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
 
             explicit min_functor(NumType upper_bound)
@@ -381,6 +416,12 @@ namespace tachy
                   return std::max<NumType>(_lower_bound, x);
             }
 
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
+
             explicit max_functor(NumType lower_bound)
                   : _key("MAX_"),
                     _lower_bound(lower_bound),
@@ -417,6 +458,12 @@ namespace tachy
             inline NumType operator()(NumType x) const
             {
                   return std::max<NumType>(_lower, std::min<NumType>(x, _upper));
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
 
             min_max_functor(NumType lower, NumType upper) :
@@ -530,6 +577,12 @@ namespace tachy
                   return _f(x);
             }
             
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
+
             explicit half_line_functor(NumType limit)
                   : _f(limit)
             {}
@@ -544,6 +597,12 @@ namespace tachy
             inline NumType operator()(NumType x) const
             {
                   return x > _x0 ? std::exp(x) : _y0;
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
 
             explicit exp_pos_arg(NumType limit) :
@@ -562,6 +621,12 @@ namespace tachy
             inline NumType apply(NumType x) const
             {
                   return x < _x0 ? std::exp(x) : _y0;
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
 
             explicit exp_neg_arg(NumType limit) :

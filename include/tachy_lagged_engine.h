@@ -8,6 +8,69 @@
 namespace tachy
 {
       // Note that lag is not a functor, because it works on the index into array, not array value at that index
+      template <typename NumType, typename Op>
+      class lagged_engine_base
+      {
+      public:
+            typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
+
+            lagged_engine_base(const Op& op, int lag) :
+                  _op(op),
+                  _lag(lag)
+            {
+                  if (_lag > 0)
+                        _op.set_assign_guard(*this);
+            }
+
+            // Copying is suspect - it may lead to dangling references (see the type of _op variable)
+            lagged_engine_base(const lagged_engine_base& other) :
+                  _op(other._op),
+                  _lag(other._lag)
+            {
+                  if (_lag > 0)
+                        _op.set_assign_guard(*this);
+            }
+
+            virtual ~lagged_engine_base()
+            {
+                  _op.release_assign_guard(*this);
+            }
+                        
+            unsigned int size() const
+            {
+                  return _op.size();
+            }
+
+            tachy_date get_start_date() const
+            {
+                  return _op.get_start_date();
+            }
+
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const lagged_engine_base& eng) const
+            {
+                  return this == &eng;
+            }
+            
+      protected:
+            typename data_engine_traits<Op>::ref_type_t _op;
+            int _lag;
+
+            lagged_engine_base& operator= (const lagged_engine_base& other)
+            {
+                  if (this != &other)
+                  {
+                        _op = other._op;
+                        _lag = other._lag;
+                  }
+                  return *this;
+            }
+      };
+
       template <bool Checked> struct lag_checking_policy;
 
       template <> struct lag_checking_policy<true>
@@ -27,65 +90,22 @@ namespace tachy
       };
       
       template <typename NumType, typename Op, bool Checked>
-      class lagged_engine
+      class lagged_engine : public lagged_engine_base<NumType, Op>
       {
       public:
             typedef arch_traits<NumType, ACTIVE_ARCH_TYPE> arch_traits_t;
 
-            lagged_engine(const Op& op, int lag) :
-                  _op(op),
-                  _lag(lag)
-            {
-                  if (_lag > 0)
-                        _op.incr_assign_guard();
-            }
-
-            // Copying is suspect - it may lead to dangling references (see the type of _op variable)
-            lagged_engine(const lagged_engine& other) :
-                  _op(other._op),
-                  _lag(other._lag)
-            {
-                  if (_lag > 0)
-                        _op.incr_assign_guard();
-            }
-
-            virtual ~lagged_engine() // virtual - just in case we derive from it
-            {
-                  _op.decr_assign_guard();
-            }
+            lagged_engine(const Op& op, int lag) : lagged_engine_base<NumType, Op>(op, lag) {}
+            lagged_engine(const lagged_engine& other) : lagged_engine_base<NumType, Op>(other) {}
                         
             NumType operator[] (int idx) const
             {
-                  return _op[lag_checking_policy<Checked>::lag(0, idx, _lag)]; // checking upper boundary is left for the operand itself
+                  return this->_op[lag_checking_policy<Checked>::lag(0, idx, this->_lag)]; // checking upper boundary is left for the operand itself
             }
 
-            unsigned int size() const
-            {
-                  return _op.size();
-            }
-
-            tachy_date get_start_date() const
-            {
-                  return _op.get_start_date();
-            }
-            
             typename arch_traits_t::packed_t get_packed(int idx) const
             {
-                  return _op.get_packed(lag_checking_policy<Checked>::lag(0, idx, _lag));
-            }
-
-      protected:
-            typename data_engine_traits<Op>::ref_type_t _op;
-            int _lag;
-
-            lagged_engine& operator= (const lagged_engine& other)
-            {
-                  if (this != &other)
-                  {
-                        _op = other._op;
-                        _lag = other._lag;
-                  }
-                  return *this;
+                  return this->_op.get_packed(lag_checking_policy<Checked>::lag(0, idx, this->_lag));
             }
       };
 }

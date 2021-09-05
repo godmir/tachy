@@ -134,6 +134,11 @@ namespace tachy
                   return _engine;
             }
 
+            template <class SomeDataEngine> bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return _engine.depends_on(eng);
+            }
+            
             // cache can be labelled mutable,
             // but for now (Dec 6 2013) this method is the only case where 'const' gets in the way,
             // so const_cast here
@@ -277,6 +282,11 @@ namespace tachy
                         TACHY_THROW("calc_vector: trying to assign to a pre-cached object (" << _id << ")");
                   }
 
+                  if (_engine.is_guarded() and other.depends_on(_engine))
+                  {
+                        TACHY_THROW("calc_vector: trying to assign to a guarded level > 0 object (" << _id << ")");
+                  }
+                  
                   _id = other.get_id();
                   // should the copy be with or without history?
                   // if the engine is cached, it will be _with_ history
@@ -414,6 +424,16 @@ namespace tachy
                   return *_engine;
             }
 
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const data_engine_t& eng) const
+            {
+                  return &_engine == &eng;
+            }
+            
             // cache can be labelled mutable,
             // but for now (Dec 6 2013) this method is the only case where 'const' gets in the way,
             // so const_cast here
@@ -574,6 +594,11 @@ namespace tachy
                   return _engine;
             }
 
+            template <class SomeDataEngine> bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return _engine.depends_on(eng);
+            }
+            
             cache_t cache() const
             {
                   return cache_t();
@@ -692,8 +717,8 @@ namespace tachy
                   int i_tgt = std::max(0, num_hist);
                   int i_src = std::max(0, -num_hist);
                   int n_elems = std::min<int>(other.size() - i_src, size() - i_tgt);
-                  if (_engine.is_guarded()) // this is only necessary if the vector is also present on the rhs
-                  {                         // but checking this specifically requiers extra code, so - doing one size fits all
+                  if (_engine.is_guarded() and other.depends_on(_engine))
+                  {
                         int i = 0;
                         for ( ; i < n_elems; ++i)
                               _engine[i_tgt + i] = other[i_src + i];
@@ -807,6 +832,16 @@ namespace tachy
             const data_engine_t get_cached_engine() const
             {
                   return _engine;
+            }
+
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const data_engine_t& eng) const
+            {
+                  return &_engine == &eng;
             }
 
             cache_t cache() const

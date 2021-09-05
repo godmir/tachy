@@ -75,6 +75,11 @@ namespace tachy
                   return tachy_date::min_date();
             }
             
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
+            
       protected:
             typename arch_traits_t::packed_t _x;
 

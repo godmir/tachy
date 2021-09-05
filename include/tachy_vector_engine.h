@@ -2,11 +2,13 @@
 #define TACHY_VECTOR_ENGINE_H__INCLUDED
 
 #include <vector>
+#include <unordered_set>
 
 #include "tachy_arch_traits.h"
 #include "tachy_aligned_allocator.h"
 #include "tachy_cacheable.h"
 #include "tachy_date.h"
+#include "tachy_lagged_engine.h"
 
 namespace tachy
 {
@@ -180,27 +182,36 @@ namespace tachy
                   _start_date = new_start_date;
             }
 
-            void incr_assign_guard() const
+            void set_assign_guard(const lagged_engine_base<NumType, vector_engine<NumType>>& eng) const
             {
-                  ++_guard;
+                  _guard.insert(&eng);
             }
 
-            void decr_assign_guard() const
+            void release_assign_guard(const lagged_engine_base<NumType, vector_engine<NumType>>& eng) const
             {
-                  if (_guard > 0)
-                        --_guard;
+                  _guard.erase(&eng);
             }
 
             bool is_guarded() const
             {
-                  return _guard > 0;
+                  return not _guard.empty();
+            }
+
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
             }
             
+            bool depends_on(const vector_engine& eng) const
+            {
+                  return this == &eng;
+            }
+
       private:
             storage_t  _data;
             tachy_date _start_date;
 
-            mutable int _guard;
+            mutable std::unordered_set<const lagged_engine_base<NumType, vector_engine<NumType>>*> _guard;
       };
 }
 

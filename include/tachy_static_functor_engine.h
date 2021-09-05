@@ -62,6 +62,16 @@ namespace tachy
                   return _res->get_start_date();
             }
             
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const vector_engine<NumType>& eng) const
+            {
+                  return _res == &eng;
+            }
+            
       protected:
             std::string             _key; // for debug only
             vector_engine<NumType>* _res;
@@ -104,6 +114,16 @@ namespace tachy
             tachy_date get_start_date() const
             {
                   return _op.get_start_date();
+            }
+            
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const typename data_engine_traits<Op>::ref_type_t eng) const
+            {
+                  return &_op == &eng;
             }
             
       protected:
@@ -172,6 +192,14 @@ namespace tachy
                   return *_cached_vector;
             }
 
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  if (_cached_vector)
+                        return _cached_vector->depends_on(eng);
+                  else
+                        return _op.depends_on(eng);
+            }
+            
       protected:
             std::string _key;
             typename data_engine_traits<Op>::ref_type_t _op;
@@ -221,6 +249,12 @@ namespace tachy
             {
                   return std::exp(x);
             }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
       };
 
       template <typename NumType>
@@ -245,6 +279,12 @@ namespace tachy
             static inline NumType apply(NumType x)
             {
                   return std::log(x);
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
       };
 
@@ -271,6 +311,12 @@ namespace tachy
             {
                   return -x;
             }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
+            }
       };
       
       template <typename NumType>
@@ -295,6 +341,12 @@ namespace tachy
             static inline NumType apply(NumType x)
             {
                   return std::abs(x);
+            }
+
+            // WARNING: I am not sure this is correct - if it isn't, we'll have to capture engine being passed in to the operator()
+            template <class SomeDataEngine> constexpr bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return false;
             }
       };
       

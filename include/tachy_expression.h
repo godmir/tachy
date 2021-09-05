@@ -119,6 +119,16 @@ namespace tachy
                   return _res->get_start_date();
             }
 
+            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  return false;
+            }
+            
+            bool depends_on(const vector_engine<NumType>& eng) const
+            {
+                  return _res == &eng;
+            }
+
       protected:
             vector_engine<NumType>* _res;
            
@@ -193,6 +203,11 @@ namespace tachy
                   return _dt;
             }
 
+            template <class SomeDataEngine> bool depends_on(const SomeDataEngine& eng) const
+            {
+                  return _op1.depends_on(eng) or _op2.depends_on(eng);
+            }
+            
       protected:
             typename data_engine_traits<Op1>::ref_type_t _op1;
             typename data_engine_traits<Op2>::ref_type_t _op2;
@@ -219,7 +234,7 @@ namespace tachy
                   _op1(op1),    
                   _op2(op2),    
                   _cache(cache),
-                  _cached_vector(0)
+                  _cached_vector(nullptr)
             {
                   TACHY_LOG("Delayed Cache " << cache.get_id() << ": delayed caching for " << key);
             }
@@ -229,7 +244,7 @@ namespace tachy
                   _op1(other._op1),    
                   _op2(other._op2),    
                   _cache(other._cache),
-                  _cached_vector(0)
+                  _cached_vector(nullptr)
             {}
            
             ~op_engine_delayed_cache()
@@ -269,6 +284,14 @@ namespace tachy
                   return *_cached_vector;
             }
            
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
+            {
+                  if (_cached_vector)
+                        return _cached_vector->depends_on(eng);
+                  else
+                        return _op1.depends_on(eng) or _op2.depends_on(eng);
+            }
+            
       protected:
             std::string _key;
             typename data_engine_traits<Op1>::ref_type_t _op1;
