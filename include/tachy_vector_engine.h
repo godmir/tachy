@@ -22,26 +22,22 @@ namespace tachy
 
             vector_engine(const tachy_date& start_date, const std::vector<NumType>& data) :
                   _data(data.begin(), data.end()),
-                  _start_date(start_date),
-                  _guard(0)
+                  _start_date(start_date)
             {}
 
             vector_engine(const vector_engine& other) : cacheable(other),
                   _data(other._data),
-                  _start_date(other._start_date),
-                  _guard(0) // no need to copy because storage is not shared between this and other
+                  _start_date(other._start_date) // no need to copy _guard because storage is not shared between this and other
             {}
 
             vector_engine(const tachy_date& start_date, unsigned int size, NumType value) :
                   _data(size, value),
-                  _start_date(start_date),
-                  _guard(0)
+                  _start_date(start_date)
             {}
 
             vector_engine(const tachy_date& start_date, unsigned int size) :
                   _data(size, NumType(0)),
-                  _start_date(start_date),
-                  _guard(0)
+                  _start_date(start_date)
             {}
 
             // virtual because it inherits from cacheable
@@ -59,7 +55,7 @@ namespace tachy
                   {
                         _data = other._data;
                         _start_date = other._start_date;
-                        // _guard is unchanged (not sure it's right: but generally _guard is about storage, not actual values)
+                        // _guard is unchanged (not sure it's right: but generally _guard is a specific instance, not values it contains)
                   }
                   return *this;
             }
@@ -197,9 +193,9 @@ namespace tachy
                   return not _guard.empty();
             }
 
-            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
             {
-                  return false;
+                  return eng.depends_on(*this);
             }
             
             bool depends_on(const vector_engine& eng) const

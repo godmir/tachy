@@ -822,7 +822,7 @@ public:
             date = 201703;
             src.resize(500, 0.0);
             for (std::vector<real_t>::iterator i = src.begin(); i != src.end(); ++i)
-                  *i = real_t(random())/RAND_MAX;
+                  *i = 2.0*real_t(random())/RAND_MAX - 1.0;
       }
       
       void test_ctor()
@@ -877,15 +877,16 @@ public:
       void test_assign_guard()
       {
             vector_t v0("v0", tachy::tachy_date(date), src);
-
-            std::vector<real_t> expected(src.size(), 0.0);
+            
+            std::vector<real_t> expected = src;
+            expected[0] = 0.75;
             for (int i = 1; i < expected.size(); ++i)
-                  expected[i] = 0.75*expected[i-1] + std::max(0.0, std::min(v0[i], 0.2));
+                  expected[i] = 0.75*exp(-expected[i-1]) + std::max(0.0, std::min(v0[i], 0.2));
 
             int dt = 1;
             tachy::time_shift t;
             v0[0] = 0.0;
-            v0 = 0.75*v0[t-dt] + tachy::max(0.0, tachy::min(v0, 0.2));
+            v0 = 0.75*tachy::exp(-v0[t-dt]) + tachy::max(0.0, tachy::min(v0, 0.2));
 
             for (int i = 0; i < src.size(); ++i)
             {

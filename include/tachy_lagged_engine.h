@@ -46,9 +46,9 @@ namespace tachy
                   return _op.get_start_date();
             }
 
-            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
             {
-                  return false;
+                  return eng.depends_on(_op);
             }
             
             bool depends_on(const lagged_engine_base& eng) const

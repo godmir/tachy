@@ -343,7 +343,7 @@ void runAll(const Model& model, const vector<Pool*>& collateral, const tachy::ta
                   pmtRatio3 = actPmts*wouldBeInvPmts3 - model.eiOffset;
 
                   // here the lib detects that the destination vector
-                  // is present on the right hand side in a lagged form,
+                  // is present on the right hand side with a lag,
                   // so it will disable vectorization
                   burnout[0] = 0.0;
                   burnout = 0.98*burnout[t-1] + tachy::max(0.0, tachy::min(pmtRatio1, 0.2));

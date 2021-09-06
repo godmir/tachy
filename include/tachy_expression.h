@@ -119,9 +119,9 @@ namespace tachy
                   return _res->get_start_date();
             }
 
-            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
             {
-                  return false;
+                  return _res and eng.depends_on(*_res);
             }
             
             bool depends_on(const vector_engine<NumType>& eng) const

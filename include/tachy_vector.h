@@ -424,9 +424,9 @@ namespace tachy
                   return *_engine;
             }
 
-            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
             {
-                  return false;
+                  return eng.depends_on(_engine);
             }
             
             bool depends_on(const data_engine_t& eng) const
@@ -834,9 +834,9 @@ namespace tachy
                   return _engine;
             }
 
-            template <class SomeOtherDataEngine> constexpr bool depends_on(const SomeOtherDataEngine& eng) const
+            template <class SomeOtherDataEngine> bool depends_on(const SomeOtherDataEngine& eng) const
             {
-                  return false;
+                  return eng.depends_on(_engine);
             }
             
             bool depends_on(const data_engine_t& eng) const
